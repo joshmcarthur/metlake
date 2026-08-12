@@ -6,27 +6,33 @@ Metlake preserves historical Wellington (Metlink) transit data that is otherwise
 
 The filesystem is the archive. DuckDB is the transformation/query engine. Everything else is orchestration.
 
+Metlake is an independent open-source project. It is **not** affiliated with Metlink or Greater Wellington Regional Council. Upstream attribution lives in [docs/sources.md](docs/sources.md).
+
 ## What it does
 
-- Captures Metlink GTFS, GTFS-RT, and bus performance CSV on a schedule
+- Captures Metlink GTFS, GTFS-RT (trip updates, vehicle positions, service alerts), and bus performance CSV on a schedule
 - Stores original responses unchanged under `raw/`
 - Projects raw data into Parquet under `curated/` with DuckDB
-- Optionally derives thin analytical joins under `derived/`
-- Runs as an unprivileged Docker appliance with [supercronic](https://github.com/aptible/supercronic)
+- Derives a thin route-performance join under `derived/`
+- Runs as an **unprivileged** Docker appliance with [supercronic](https://github.com/aptible/supercronic) + a plain `crontab`
 
-Metlake is an independent open-source project. It is not affiliated with Metlink or Greater Wellington Regional Council. Upstream data is attributed in [docs/sources.md](docs/sources.md).
+## Requirements
 
-## Quick start
+- Docker (for the appliance), or locally: `bash`, `curl`, `unzip`, `python3`, [DuckDB CLI](https://duckdb.org/docs/installation/)
+- A Metlink Open Data API key from https://opendata.metlink.org.nz/
+
+## Quick start (Docker)
 
 ```bash
 cp .env.example .env
-# edit .env and set METLINK_API_KEY
+# set METLINK_API_KEY=... in .env (never commit .env)
 
 mkdir -p ./archive
 docker compose up -d --build
+docker logs -f metlake
 ```
 
-Or without Compose:
+Equivalent `docker run`:
 
 ```bash
 docker build -t metlake .
@@ -37,35 +43,79 @@ docker run -d \
   metlake:latest
 ```
 
-Manual one-shot (no Docker):
+No privileged mode, cgroup mounts, or `SYS_ADMIN` are required.
+
+## Manual scripts (no Docker)
 
 ```bash
 export ARCHIVE_ROOT=./archive
-export METLINK_API_KEY=your-key
-./scripts/fetch-gtfs-rt.sh
+export METLINK_API_KEY=your-key   # from your environment; do not paste into git
+
 ./scripts/check.sh
+./scripts/fetch-gtfs-rt.sh
+./scripts/fetch-gtfs.sh
+./scripts/fetch-performance.sh
+
+HOUR=2026-08-12T09 ./scripts/project-gtfs-rt-hour.sh
+DATE=2026-08-12 ./scripts/project-gtfs-rt-day.sh
+DATE=2026-08-12 ./scripts/project-gtfs.sh
+DATE=2026-08-12 ./scripts/project-performance-day.sh
+MONTH=2026-08 ./scripts/derive-route-performance.sh
+
 ./scripts/status.sh
 ```
+
+Each job is its own script under `scripts/`. Shared helpers live in `lib/common.sh`. Schedule definitions are in [`crontab`](crontab).
 
 ## Archive layout
 
 ```text
 $ARCHIVE_ROOT/
   raw/
+    gtfs/YYYY/MM/DD/full.zip
+    gtfs-rt/{tripupdates,vehiclepositions,servicealerts}/YYYY/MM/DD/HH-MM.json
+    performance/YYYY/MM/DD.csv
   curated/
+    gtfs/YYYY-MM-DD/*.parquet
+    gtfs-rt/{feed}/hourly|daily|monthly/...
+    performance/daily|monthly/...
   derived/
+    route-performance/YYYY-MM.parquet
   metadata/
+    captures.jsonl
 ```
 
-See [docs/specs/2026-08-12-metlake-design.md](docs/specs/2026-08-12-metlake-design.md) for the full layout.
+The archive directory is portable: rsync it, serve it with nginx, or mirror to S3/R2. Metlake never embeds cloud SDKs in the core path.
 
 ## Query examples
 
 ```sql
+-- Daily trip updates
 SELECT *
-FROM read_parquet('/path/to/archive/curated/gtfs-rt/tripupdates/daily/*.parquet')
-LIMIT 10;
+FROM read_parquet('/path/to/archive/curated/gtfs-rt/tripupdates/daily/*/*/*.parquet')
+LIMIT 20;
+
+-- Performance + route names
+SELECT day, route, route_short_name, reliability, punctuality
+FROM read_parquet('/path/to/archive/derived/route-performance/*.parquet')
+WHERE route_short_name IS NOT NULL
+LIMIT 20;
 ```
+
+When files are published over HTTPS:
+
+```sql
+SELECT *
+FROM read_parquet('https://data.example.nz/curated/gtfs-rt/tripupdates/daily/2026/08/12.parquet');
+```
+
+## Tests
+
+```bash
+./tests/smoke.sh
+```
+
+Live fetch checks need `METLINK_API_KEY` and are optional.
 
 ## Documentation
 
@@ -78,4 +128,4 @@ LIMIT 10;
 
 ## License
 
-Software: [MIT](LICENSE). Upstream Metlink open data is typically CC-BY-4.0 — see [docs/sources.md](docs/sources.md).
+Software: [MIT](LICENSE). Upstream Metlink open data is typically CC-BY-4.0 — see [docs/sources.md](docs/sources.md) before redistributing archived feeds.
