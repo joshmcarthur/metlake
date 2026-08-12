@@ -1,0 +1,12 @@
+services:
+  metlake:
+    build: .
+    image: metlake:latest
+    container_name: metlake
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ARCHIVE_ROOT: /archive
+    volumes:
+      - ${METLAKE_ARCHIVE_HOST_PATH:-./archive}:/archive
