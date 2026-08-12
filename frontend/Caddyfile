@@ -1,0 +1,12 @@
+:80 {
+	handle_path /data/* {
+		root * /data
+		file_server browse
+	}
+
+	handle {
+		root * /srv
+		try_files {path} {path}/ {path}/index.html /index.html
+		file_server
+	}
+}

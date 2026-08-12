@@ -8,3 +8,4 @@ tests/tmp
 *.duckdb
 README.md
 docs
+frontend

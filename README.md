@@ -45,6 +45,29 @@ docker run -d \
 
 No privileged mode, cgroup mounts, or `SYS_ADMIN` are required.
 
+## Web UI
+
+The Astro SPA in [`frontend/`](frontend/) is served by a separate Caddy container. It reads the archive over HTTP at `/data/…` (DuckDB-WASM in the browser). Static HTML prototypes in [`frontend/prototypes/`](frontend/prototypes/) remain the design reference until SPA parity is signed off.
+
+With the capture appliance already running (or at least `./archive` populated):
+
+```bash
+docker compose up -d --build frontend
+open http://localhost:8080
+```
+
+Browse files at [http://localhost:8080/data/](http://localhost:8080/data/). The archive mount uses the same host path as the appliance: `${METLAKE_ARCHIVE_HOST_PATH:-./archive}:/data:ro`.
+
+Local development without Docker:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+View prototypes only: `cd frontend/prototypes && python3 -m http.server 5173`
+
 ## Manual scripts (no Docker)
 
 ```bash
@@ -118,7 +141,7 @@ FROM read_parquet('https://data.example.nz/curated/gtfs-rt/tripupdates/daily/202
 
 `lint.sh` runs ShellCheck, `shfmt` diff, shebang/executable checks, CRLF detection, and a light tracked-secrets hygiene check. Live fetch checks need `METLINK_API_KEY` and are optional.
 
-GitHub Actions runs lint and smoke on every pull request and on `main`.
+GitHub Actions runs lint, smoke, and a frontend build on every pull request and on `main`.
 
 ## Releases
 
