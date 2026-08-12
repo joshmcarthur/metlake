@@ -19,10 +19,11 @@ Release Please uses those prefixes to draft `CHANGELOG.md` and version bumps. Pr
 ## Tests
 
 ```bash
+./tests/lint.sh
 ./tests/smoke.sh
 ```
 
-CI runs the same smoke suite on pull requests and `main`. Live API tests require `METLINK_API_KEY` and are skipped when unset.
+CI runs lint (ShellCheck, shfmt, script hygiene) and smoke on pull requests and `main`. Live API tests require `METLINK_API_KEY` and are skipped when unset.
 
 ## Code of conduct
 

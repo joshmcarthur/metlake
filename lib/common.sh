@@ -151,8 +151,9 @@ append_capture_record() {
 }
 
 # Download URL to DEST atomically. Optional: pass extra curl args after DEST.
-# Sets global HTTP_CODE on success path for callers that care.
+# Sets exported HTTP_CODE on success path for callers that care.
 HTTP_CODE=""
+export HTTP_CODE
 fetch_to_file() {
   local url="$1"
   local dest="$2"
@@ -173,6 +174,7 @@ fetch_to_file() {
     die "HTTP download failed for ${url} (curl exit $?)"
   }
   HTTP_CODE="${code}"
+  export HTTP_CODE
   if [[ "${code}" != "200" && "${code}" != "000" ]]; then
     # curl --fail may already have exited; keep a belt-and-suspenders check.
     :
