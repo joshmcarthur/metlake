@@ -44,6 +44,8 @@ const resolved = routeRef ?? findRoute(route ?? "");
 
     <PeriodControls heading="Period" showCompare={false} interactive />
 
+    <section class="ai-panel ai-panel--lead" data-ai-commentary aria-label="Route commentary"></section>
+
     <section class="section">
       <ul class="callout-insights">
         <li>
@@ -106,8 +108,6 @@ const resolved = routeRef ?? findRoute(route ?? "");
         <a class="btn secondary" href={`/routes/${resolved.route}/`}>Back to scorecard</a>
       </div>
     </section>
-
-    <section class="ai-panel" data-ai-commentary aria-label="Route commentary"></section>
   </main>
 
   <script src="../../../scripts/route-deep/route-deep-app.ts"></script>

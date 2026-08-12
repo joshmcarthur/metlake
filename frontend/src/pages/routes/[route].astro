@@ -66,6 +66,8 @@ const resolved = routeRef ?? findRoute(route ?? "");
 
       <PeriodControls heading="Period" interactive showCompare />
 
+      <section class="ai-panel ai-panel--lead" data-ai-commentary aria-label="Route commentary"></section>
+
       <section class="section">
         <SummaryTiles tiles={ROUTE_TILES} interactive variant="route" />
       </section>
@@ -90,8 +92,6 @@ const resolved = routeRef ?? findRoute(route ?? "");
           <a class="btn secondary" data-parquet-link href="/data/">Parquet</a>
         </div>
       </section>
-
-      <section class="ai-panel" data-ai-commentary aria-label="Route commentary"></section>
     </div>
   </main>
 

@@ -3,6 +3,11 @@ import { getFallbackText } from "./fallback";
 import { generateCommentary, getLanguageModelAvailability } from "./prompt-api";
 import type { CommentaryBrief } from "./types";
 
+export interface CommentaryPanelOptions {
+  /** When true (default), generate as soon as a stats brief is available / updated. */
+  autoGenerate?: boolean;
+}
+
 export interface CommentaryPanel {
   updateBrief(brief: CommentaryBrief): void;
 }
@@ -27,7 +32,7 @@ async function syncModelStatus(status: HTMLElement | null): Promise<void> {
   if (availability === "unsupported") {
     setStatus(
       status,
-      "Chrome Prompt API not detected — sample commentary still works. Needs a recent Chrome with on-device Gemini Nano.",
+      "Chrome Prompt API not detected — using sample commentary. Needs a recent Chrome with on-device Gemini Nano.",
       "warn",
     );
   } else if (availability === "unavailable") {
@@ -47,22 +52,29 @@ function renderPanelShell(root: HTMLElement, brief: CommentaryBrief): void {
   root.innerHTML = `
     <div class="viz-head">
       <h2 data-ai-title>${escapeHtml(brief.title)}</h2>
-      <p>On-device Chrome Prompt API · stats brief injected as context</p>
+      <p>On-device summary of the numbers below · regenerates when the period changes</p>
     </div>
     <p class="ai-status" data-ai-status>Checking on-device model…</p>
+    <div class="ai-output" data-ai-output aria-live="polite"></div>
     <div class="ai-actions">
-      <button type="button" class="btn primary-signal" data-ai-run>Generate commentary</button>
+      <button type="button" class="btn secondary" data-ai-run>Regenerate</button>
       <button type="button" class="btn secondary" data-ai-sample>Show sample</button>
       <button type="button" class="btn secondary" data-ai-brief>View stats brief</button>
     </div>
     <pre class="ai-brief hidden" data-ai-brief-view hidden></pre>
-    <div class="ai-output" data-ai-output aria-live="polite"></div>
   `;
 }
 
-export function mountCommentaryPanel(root: HTMLElement, initialBrief?: CommentaryBrief): CommentaryPanel {
+export function mountCommentaryPanel(
+  root: HTMLElement,
+  initialBrief?: CommentaryBrief,
+  options: CommentaryPanelOptions = {},
+): CommentaryPanel {
+  const autoGenerate = options.autoGenerate !== false;
   let brief = initialBrief;
   let controller: AbortController | null = null;
+  let runToken = 0;
+  let actionsBound = false;
 
   if (brief) renderPanelShell(root, brief);
 
@@ -79,16 +91,77 @@ export function mountCommentaryPanel(root: HTMLElement, initialBrief?: Commentar
     if (briefView) briefView.textContent = formatBrief(brief.stats);
   }
 
-  function bindActions(): void {
+  async function runGenerate(): Promise<void> {
+    if (!brief) return;
+
     const status = getStatus();
     const output = getOutput();
     const briefView = getBriefView();
     const runBtn = getRunBtn();
+    const token = ++runToken;
+
+    controller?.abort();
+    controller = new AbortController();
+    if (runBtn) runBtn.disabled = true;
+    if (output) output.textContent = "";
+    setStatus(status, "Generating…", "ok");
+
+    try {
+      const result = await generateCommentary(brief, {
+        signal: controller.signal,
+        onChunk: (event) => {
+          if (token !== runToken) return;
+          if (event.type === "download" && typeof event.loaded === "number") {
+            setStatus(status, `Downloading model… ${Math.round(event.loaded * 100)}%`, "ok");
+          } else if (event.type === "text" && event.text && output) {
+            output.textContent = event.text;
+          }
+        },
+      });
+
+      if (token !== runToken) return;
+
+      if (output) output.textContent = result.text;
+      if (result.source === "fallback") {
+        setStatus(
+          status,
+          "Used sample text — on-device model not available. Brief below is what we would inject.",
+          "warn",
+        );
+        briefView?.removeAttribute("hidden");
+        briefView?.classList.remove("hidden");
+      } else {
+        setStatus(status, "Generated on-device from the injected stats brief.", "ok");
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        if (token === runToken) void syncModelStatus(status);
+        return;
+      }
+      if (token !== runToken) return;
+      console.error(error);
+      if (output) output.textContent = getFallbackText(brief);
+      const message = error instanceof Error ? error.message : String(error);
+      setStatus(status, `Error: ${message}. Showing sample instead.`, "warn");
+    } finally {
+      if (token === runToken && runBtn) runBtn.disabled = false;
+    }
+  }
+
+  function bindActions(): void {
+    if (actionsBound) return;
+    actionsBound = true;
+
+    const status = getStatus();
+    const output = getOutput();
+    const briefView = getBriefView();
 
     void syncModelStatus(status);
 
     root.querySelector("[data-ai-sample]")?.addEventListener("click", () => {
       if (!brief) return;
+      controller?.abort();
+      runToken += 1;
       if (output) output.textContent = getFallbackText(brief);
       setStatus(status, "Showing canned sample (no model call).", "ok");
     });
@@ -101,57 +174,15 @@ export function mountCommentaryPanel(root: HTMLElement, initialBrief?: Commentar
       briefView.classList.toggle("hidden", !hidden);
     });
 
-    runBtn?.addEventListener("click", async () => {
-      if (!brief || !runBtn) return;
-
-      controller?.abort();
-      controller = new AbortController();
-      runBtn.disabled = true;
-      if (output) output.textContent = "";
-      setStatus(status, "Generating…", "ok");
-
-      try {
-        const result = await generateCommentary(brief, {
-          signal: controller.signal,
-          onChunk: (event) => {
-            if (event.type === "download" && typeof event.loaded === "number") {
-              setStatus(status, `Downloading model… ${Math.round(event.loaded * 100)}%`, "ok");
-            } else if (event.type === "text" && event.text && output) {
-              output.textContent = event.text;
-            }
-          },
-        });
-
-        if (output) output.textContent = result.text;
-        if (result.source === "fallback") {
-          setStatus(
-            status,
-            "Used sample text — on-device model not available. Brief below is what we would inject.",
-            "warn",
-          );
-          briefView?.removeAttribute("hidden");
-          briefView?.classList.remove("hidden");
-        } else {
-          setStatus(status, "Generated on-device from the injected stats brief.", "ok");
-        }
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          void syncModelStatus(status);
-          return;
-        }
-        console.error(error);
-        if (output) output.textContent = getFallbackText(brief);
-        const message = error instanceof Error ? error.message : String(error);
-        setStatus(status, `Error: ${message}. Showing sample instead.`, "warn");
-      } finally {
-        runBtn.disabled = false;
-      }
+    getRunBtn()?.addEventListener("click", () => {
+      void runGenerate();
     });
   }
 
   if (brief) {
     syncBriefView();
     bindActions();
+    if (autoGenerate) void runGenerate();
   }
 
   return {
@@ -162,9 +193,10 @@ export function mountCommentaryPanel(root: HTMLElement, initialBrief?: Commentar
         renderPanelShell(root, brief);
         syncBriefView();
         bindActions();
-        return;
+      } else {
+        syncBriefView();
       }
-      syncBriefView();
+      if (autoGenerate) void runGenerate();
     },
   };
 }

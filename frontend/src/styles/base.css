@@ -141,11 +141,17 @@ main {
 
 .ai-panel {
   margin-top: 1.75rem;
+  margin-bottom: 0.25rem;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 0.95rem 1rem 1.05rem;
+}
+
+.ai-panel--lead {
+  margin-top: 1.15rem;
+  margin-bottom: 1.35rem;
 }
 
 .ai-status {
