@@ -1,4 +1,4 @@
-/** Route shown in the primary nav and used as the default drill-down target. */
+/** Route shown as a fallback sample in Query SQL when none is selected yet. */
 export const DEFAULT_ROUTE = "83";
 
 /** Archive files are served by Caddy from the mounted archive, outside the Astro build. */
@@ -7,7 +7,7 @@ export const DATA_ROOT = "/data/";
 export const BRAND_TAGLINE =
   "Historical Metlink performance you can explore, compare, and download.";
 
-export type NavKey = "overview" | "route" | "route-deep" | "query";
+export type NavKey = "overview" | "route" | "query";
 
 export interface NavItem {
   key: NavKey;
@@ -15,10 +15,9 @@ export interface NavItem {
   href: string;
 }
 
+/** Primary text links only — Route uses an inline picker in the header. */
 export const NAV_ITEMS: NavItem[] = [
   { key: "overview", label: "Overview", href: "/" },
-  { key: "route", label: `Route ${DEFAULT_ROUTE}`, href: `/routes/${DEFAULT_ROUTE}/` },
-  { key: "route-deep", label: "Route deep", href: `/routes/${DEFAULT_ROUTE}/deep/` },
   { key: "query", label: "Query", href: "/query/" },
 ];
 

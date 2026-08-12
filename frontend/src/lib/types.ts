@@ -51,6 +51,12 @@ export interface NetworkDailyPoint {
   cancellations_rate: number | null;
 }
 
+export interface RouteCatalogEntry {
+  route: string;
+  route_short_name: string | null;
+  route_long_name: string | null;
+}
+
 export interface RoutePeakGapRow {
   route: string;
   route_short_name: string | null;

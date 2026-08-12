@@ -5,6 +5,7 @@ import type {
   DateRange,
   NetworkDailyPoint,
   PeriodSummary,
+  RouteCatalogEntry,
   RouteDailyPoint,
   RouteLeaderboardRow,
   RoutePeakGapRow,
@@ -263,6 +264,24 @@ export async function getDataBounds(
   const to = toNullableString(row?.max_day);
   if (!from || !to) return null;
   return { from, to };
+}
+
+export async function getRouteCatalog(conn: DuckDbConnection): Promise<RouteCatalogEntry[]> {
+  const result = await conn.query(`
+    SELECT
+      route,
+      any_value(route_short_name) AS route_short_name,
+      any_value(route_long_name) AS route_long_name
+    FROM ${ROUTE_PERFORMANCE_VIEW}
+    GROUP BY route
+    ORDER BY route ASC;
+  `);
+
+  return result.toArray().map((row) => ({
+    route: String(row.route),
+    route_short_name: toNullableString(row.route_short_name),
+    route_long_name: toNullableString(row.route_long_name),
+  }));
 }
 
 export async function getPeakGapByRoute(

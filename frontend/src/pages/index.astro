@@ -9,7 +9,6 @@ import {
   BEST_ROUTES,
   NETWORK_TILES,
 } from "../data/placeholder";
-import { DEFAULT_ROUTE } from "../lib/site";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
@@ -104,8 +103,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </div>
         <ChartSlot id="net-corridors" label="Corridor table" bare />
         <div class="actions" style="margin-top: 0.85rem">
-          <a class="btn primary-signal" href={`/routes/${DEFAULT_ROUTE}/deep/`}>
-            Open route {DEFAULT_ROUTE} deep dive
+          <a class="btn primary-signal" data-deep-link href="/routes/83/deep/">
+            Open deep dive
           </a>
         </div>
       </section>
@@ -113,6 +112,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </main>
 
   <script src="../scripts/overview/overview-app.ts"></script>
+  <script>
+    import { wireDeepDiveLinks } from "../scripts/nav/route-picker";
+    wireDeepDiveLinks();
+  </script>
 </BaseLayout>
 
 <style>

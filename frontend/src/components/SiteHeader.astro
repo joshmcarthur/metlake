@@ -1,5 +1,5 @@
 ---
-import { BRAND_TAGLINE, DATA_ROOT, NAV_ITEMS, type NavKey } from "../lib/site";
+import { BRAND_TAGLINE, DATA_ROOT, type NavKey } from "../lib/site";
 
 interface Props {
   current?: NavKey;
@@ -18,14 +18,44 @@ const { current } = Astro.props;
       <p class="brand-tag">{BRAND_TAGLINE}</p>
     </a>
     <nav class="nav" aria-label="Primary">
-      {
-        NAV_ITEMS.map((item) => (
-          <a href={item.href} aria-current={item.key === current ? "page" : undefined}>
-            {item.label}
-          </a>
-        ))
-      }
+      <a href="/" aria-current={current === "overview" ? "page" : undefined}>Overview</a>
+      <div
+        class="nav-route"
+        data-route-picker
+        data-current={current === "route" ? "page" : undefined}
+      >
+        <label class="visually-hidden" for="nav-route-input">Select route</label>
+        <input
+          id="nav-route-input"
+          class="nav-route-input"
+          type="search"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-controls="nav-route-list"
+          aria-haspopup="listbox"
+          data-route-input
+          placeholder="Select a route…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <ul
+          id="nav-route-list"
+          class="nav-route-list"
+          role="listbox"
+          data-route-list
+          hidden
+        ></ul>
+      </div>
+      <a href="/query/" aria-current={current === "query" ? "page" : undefined}>Query</a>
       <a class="external" href={DATA_ROOT}>/data/</a>
     </nav>
   </div>
 </header>
+
+<script>
+  import { initRoutePicker } from "../scripts/nav/route-picker";
+
+  const root = document.querySelector<HTMLElement>("[data-route-picker]");
+  if (root) void initRoutePicker(root);
+</script>
