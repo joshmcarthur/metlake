@@ -1,0 +1,39 @@
+---
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiblingNote from "../components/SiblingNote.astro";
+import type { AttributionKey, NavKey } from "../lib/site";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  current?: NavKey;
+  showSiblingNote?: boolean;
+  attribution?: AttributionKey;
+}
+
+const {
+  title,
+  description = "Historical Metlink performance you can explore, compare, and download.",
+  current,
+  showSiblingNote = false,
+  attribution = "network",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en-NZ">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <SiteHeader current={current} />
+    {showSiblingNote && <SiblingNote />}
+    <slot />
+    <SiteFooter variant={attribution} />
+  </body>
+</html>

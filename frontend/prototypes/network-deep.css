@@ -1,0 +1,111 @@
+/* Extra bits for network deep-dive */
+.calendar-heat {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  max-width: 420px;
+}
+
+.calendar-heat .dow {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+  text-align: center;
+  padding-bottom: 0.2rem;
+}
+
+.calendar-heat .cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+}
+
+.calendar-heat .cell:hover,
+.calendar-heat .cell:focus {
+  color: var(--ink);
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.calendar-heat .cell.muted {
+  background: var(--paper);
+  border: 1px dashed var(--line);
+}
+
+.hist {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.hist .bar {
+  fill: var(--transit);
+}
+
+.hist .bar.soft {
+  fill: var(--warn);
+}
+
+.hist .label {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-muted);
+}
+
+.scatter {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.scatter .pt {
+  fill: var(--transit);
+  opacity: 0.75;
+}
+
+.scatter .pt.flag {
+  fill: var(--warn);
+}
+
+.scatter .axis-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-muted);
+}
+
+.corridor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.corridor-table th,
+.corridor-table td {
+  text-align: left;
+  padding: 0.5rem 0.4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.corridor-table th {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.corridor-table td.num {
+  font-family: var(--mono);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.spark {
+  display: inline-block;
+  vertical-align: middle;
+}

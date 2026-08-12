@@ -1,0 +1,124 @@
+.route-hero {
+  margin-top: 1.25rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.route-hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--transit);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 0.3rem;
+  font-weight: 600;
+}
+
+.route-hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.route-hero .desc {
+  margin: 0.4rem 0 0;
+  color: var(--ink-muted);
+  max-width: 48ch;
+}
+
+.metric-toggle,
+.direction-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+}
+
+.injector-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.injector-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.injector-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.injector-seg {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.injector-seg span {
+  display: block;
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+}
+
+.injector-bar-wrap {
+  grid-column: 1 / -1;
+  height: 8px;
+  background: var(--paper);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.injector-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--warn), #d4780a);
+  border-radius: 999px;
+}
+
+.injector-val {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--warn);
+}
+
+.callout-insights {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.callout-insights li {
+  padding: 0.65rem 0.75rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+}
+
+.callout-insights strong {
+  display: block;
+  font-size: 0.72rem;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--transit);
+  margin-bottom: 0.2rem;
+}
+
+.compare-series {
+  opacity: 0.35;
+}
+
+.compare-legend[hidden] {
+  display: none;
+}

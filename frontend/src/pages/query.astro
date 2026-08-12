@@ -1,0 +1,94 @@
+---
+import { DATA_ROOT, DEFAULT_ROUTE } from "../lib/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const sampleSql = `SELECT
+  day,
+  route,
+  route_long_name,
+  punctuality,
+  reliability,
+  cancellations_rate
+FROM read_parquet('${DATA_ROOT}derived/route-performance/2026-08.parquet')
+WHERE day BETWEEN DATE '2026-08-01' AND DATE '2026-08-12'
+  AND route = '${DEFAULT_ROUTE}'
+ORDER BY day;`;
+---
+
+<BaseLayout title="Query — Metlake" current="query" attribution="route">
+  <main class="wrap">
+    <section class="route-hero">
+      <p class="eyebrow">Data access</p>
+      <h1>Query</h1>
+      <p class="desc">
+        Ask a question in SQL, download the result, or grab the underlying files from
+        <code>{DATA_ROOT}</code>.
+      </p>
+    </section>
+
+    <div class="query-layout">
+      <section class="query-panel" aria-labelledby="sql-heading">
+        <h2 id="sql-heading">SQL</h2>
+        <label class="visually-hidden" for="sql">DuckDB SQL</label>
+        <textarea class="sql" id="sql" spellcheck="false">{sampleSql}</textarea>
+        <div class="actions">
+          <button type="button" class="btn primary-signal" disabled>Run query</button>
+          <button type="button" class="btn secondary" disabled>Download CSV</button>
+          <button type="button" class="btn secondary" disabled>Reset sample</button>
+        </div>
+        <p class="note" style="margin-top: 1rem">
+          Query execution will use DuckDB-WASM once the data layer is connected.
+        </p>
+      </section>
+
+      <section class="result-panel" aria-labelledby="result-heading">
+        <h2 id="result-heading">Result</h2>
+        <div class="table-scroll">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>day</th>
+                <th>route</th>
+                <th>punctuality</th>
+                <th>reliability</th>
+                <th>cancel %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="5">Run a query to see results.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="files-heading">Files</h2>
+        <p class="files-intro">
+          Same paths you'll find under <code>{DATA_ROOT}</code>:
+        </p>
+        <ul class="file-links">
+          <li>
+            <a href={`${DATA_ROOT}derived/route-performance/2026-08.parquet`}>
+              {DATA_ROOT}derived/route-performance/2026-08.parquet
+            </a>
+          </li>
+          <li>
+            <a href={`${DATA_ROOT}derived/route-performance/_manifest.json`}>
+              {DATA_ROOT}derived/route-performance/_manifest.json
+            </a>
+          </li>
+          <li>
+            <a href={`${DATA_ROOT}curated/performance/daily/`}>
+              {DATA_ROOT}curated/performance/daily/
+            </a>
+          </li>
+          <li>
+            <a href={`${DATA_ROOT}curated/performance/monthly/`}>
+              {DATA_ROOT}curated/performance/monthly/
+            </a>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </main>
+</BaseLayout>

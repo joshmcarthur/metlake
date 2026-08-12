@@ -1,0 +1,20 @@
+---
+interface Props {
+  lowLabel: string;
+  highLabel: string;
+}
+
+const { lowLabel, highLabel } = Astro.props;
+---
+
+<div class="heatmap-legend">
+  <span>{lowLabel}</span>
+  <div class="heatmap-scale" aria-hidden="true">
+    <i style="background: var(--heat-1)"></i>
+    <i style="background: var(--heat-2)"></i>
+    <i style="background: var(--heat-3)"></i>
+    <i style="background: var(--heat-4)"></i>
+    <i style="background: var(--heat-5)"></i>
+  </div>
+  <span>{highLabel}</span>
+</div>

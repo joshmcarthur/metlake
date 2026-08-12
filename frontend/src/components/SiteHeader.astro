@@ -1,0 +1,31 @@
+---
+import { BRAND_TAGLINE, DATA_ROOT, NAV_ITEMS, type NavKey } from "../lib/site";
+
+interface Props {
+  current?: NavKey;
+}
+
+const { current } = Astro.props;
+---
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <div class="brand-row">
+        <span class="brand-mark">Met<span>lake</span></span>
+        <span class="brand-pill">history</span>
+      </div>
+      <p class="brand-tag">{BRAND_TAGLINE}</p>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      {
+        NAV_ITEMS.map((item) => (
+          <a href={item.href} aria-current={item.key === current ? "page" : undefined}>
+            {item.label}
+          </a>
+        ))
+      }
+      <a class="external" href={DATA_ROOT}>/data/</a>
+    </nav>
+  </div>
+</header>

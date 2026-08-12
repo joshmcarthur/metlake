@@ -1,0 +1,51 @@
+---
+import type { RouteRef } from "../data/placeholder";
+
+interface Props {
+  best: RouteRef[];
+  attention: RouteRef[];
+}
+
+const { best, attention } = Astro.props;
+
+function rankLabel(index: number): string {
+  return String(index + 1).padStart(2, "0");
+}
+---
+
+<div class="board">
+  <div class="board-col winners">
+    <h3>Best punctuality</h3>
+    <ol class="rank-list">
+      {
+        best.map((entry, index) => (
+          <li>
+            <span class="n">{rankLabel(index)}</span>
+            <div>
+              <a href={`/routes/${entry.route}/`}>{entry.route}</a>
+              <span class="route-name">{entry.name}</span>
+            </div>
+            <span class="metric">—</span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <div class="board-col losers">
+    <h3>Needs attention</h3>
+    <ol class="rank-list">
+      {
+        attention.map((entry, index) => (
+          <li>
+            <span class="n">{rankLabel(index)}</span>
+            <div>
+              <a href={`/routes/${entry.route}/`}>{entry.route}</a>
+              <span class="route-name">{entry.name}</span>
+            </div>
+            <span class="metric">—</span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</div>

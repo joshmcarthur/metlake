@@ -1,0 +1,212 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--transit);
+  text-underline-offset: 0.12em;
+}
+
+a:hover {
+  color: var(--transit-deep);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+}
+
+.wrap {
+  width: min(100% - 1.75rem, var(--max));
+  margin-inline: auto;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.note {
+  color: var(--ink-muted);
+  font-size: 0.84rem;
+}
+
+main {
+  padding-bottom: 3.5rem;
+}
+
+.section {
+  margin-top: 1.75rem;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.section-head p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.88rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: white;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn:hover {
+  background: var(--transit-deep);
+  border-color: var(--transit-deep);
+  color: white;
+}
+
+.btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.btn.primary-signal {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--signal-ink);
+}
+
+.btn.primary-signal:hover {
+  filter: brightness(0.95);
+  color: var(--signal-ink);
+}
+
+.btn.secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.btn.secondary:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.ai-panel {
+  margin-top: 1.75rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.95rem 1rem 1.05rem;
+}
+
+.ai-status {
+  margin: 0 0 0.75rem;
+  font-size: 0.84rem;
+  color: var(--ink-muted);
+}
+
+.ai-status[data-kind="warn"] {
+  color: var(--warn);
+}
+
+.ai-status[data-kind="ok"] {
+  color: var(--live);
+}
+
+.ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.ai-output {
+  min-height: 4.5rem;
+  padding: 0.85rem 0.9rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.ai-output:empty::before {
+  content: "Commentary will appear here.";
+  color: var(--ink-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tile {
+    animation: rise 0.4s ease both;
+  }
+  .tile:nth-child(2) {
+    animation-delay: 0.04s;
+  }
+  .tile:nth-child(3) {
+    animation-delay: 0.08s;
+  }
+  .tile:nth-child(4) {
+    animation-delay: 0.12s;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

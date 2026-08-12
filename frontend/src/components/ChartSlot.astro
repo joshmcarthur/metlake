@@ -1,0 +1,13 @@
+---
+interface Props {
+  label: string;
+  id?: string;
+  height?: string;
+}
+
+const { label, id, height } = Astro.props;
+---
+
+<div class="chart-slot" id={id} style={height ? `--slot-height: ${height}` : undefined}>
+  <p>{label}</p>
+</div>

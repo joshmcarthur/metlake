@@ -1,0 +1,97 @@
+.query-layout {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .query-layout {
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: start;
+  }
+}
+
+.query-panel,
+.result-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 0.95rem;
+  box-shadow: var(--shadow);
+}
+
+.query-panel h2,
+.result-panel h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+textarea.sql {
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--ink);
+  color: #dce8e4;
+  padding: 0.8rem;
+}
+
+.file-links {
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+}
+
+.file-links li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.76rem;
+}
+
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+table.data th,
+table.data td {
+  text-align: left;
+  padding: 0.4rem 0.45rem;
+  border-bottom: 1px solid var(--line);
+}
+
+table.data th {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+table.data td.num {
+  font-family: var(--mono);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.result-panel .files-intro {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.88rem;
+}
+
+.result-panel .files-heading {
+  margin-top: 1.35rem;
+}

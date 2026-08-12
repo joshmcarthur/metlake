@@ -1,0 +1,165 @@
+.tiles {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .tiles {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.tiles.bare {
+  box-shadow: none;
+  border: 0;
+  background: transparent;
+}
+
+.tile {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.9rem 0.95rem 1rem;
+  min-height: 6.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+}
+
+.tile-kicker {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.tile-value {
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  margin: 0.45rem 0 0.3rem;
+}
+
+.tile-value.good {
+  color: var(--live);
+}
+
+.tile-value.soft {
+  color: var(--warn);
+}
+
+.tile-value.poor {
+  color: var(--bad);
+}
+
+.tile-delta {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  margin: 0;
+}
+
+.tile-delta.up {
+  color: var(--live);
+}
+
+.tile-delta.down {
+  color: var(--bad);
+}
+
+.tile-delta.flat {
+  color: var(--ink-muted);
+}
+
+.board {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 800px) {
+  .board {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.board-col {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.95rem 0.35rem;
+  box-shadow: var(--shadow);
+}
+
+.board-col h3 {
+  margin: 0 0 0.55rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.board-col.winners h3 {
+  color: var(--live);
+}
+
+.board-col.losers h3 {
+  color: var(--warn);
+}
+
+.rank-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rank-list li {
+  display: grid;
+  grid-template-columns: 1.75rem 1fr auto;
+  gap: 0.65rem;
+  align-items: baseline;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.rank-list .n {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+}
+
+.rank-list a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 650;
+}
+
+.rank-list a:hover {
+  color: var(--transit);
+}
+
+.rank-list .route-name {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+}
+
+.rank-list .metric {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}

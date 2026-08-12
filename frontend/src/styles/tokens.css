@@ -1,0 +1,32 @@
+/* Wellington-adjacent cues (deep harbour navy + brass signal + lime "good")
+   — deliberately not Metlink brand hexes / logo colours. */
+:root {
+  --ink: #132833;
+  --ink-muted: #5c6b75;
+  --paper: #f1f4f3;
+  --panel: #ffffff;
+  --line: #d0d8dc;
+  --line-strong: #b3c0c6;
+  --transit: #1a5f73;
+  --transit-deep: #134858;
+  --signal: #c9a227;
+  --signal-ink: #1a2a32;
+  --live: #3f7a2e;
+  --live-soft: #e7f2e3;
+  --warn: #b86a00;
+  --warn-soft: #fff4e5;
+  --bad: #a33b32;
+  --bad-soft: #f8e8e6;
+  --shadow: 0 1px 0 rgb(19 40 51 / 4%), 0 8px 24px rgb(19 40 51 / 6%);
+  --font: "DM Sans", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --max: 1080px;
+  --radius: 6px;
+
+  /* Sequential ramp for punctuality / delay heat cells. */
+  --heat-1: #e8f2e3;
+  --heat-2: #cfe4c8;
+  --heat-3: #f5e6a8;
+  --heat-4: #e8b86a;
+  --heat-5: #c45c16;
+}

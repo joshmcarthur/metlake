@@ -1,0 +1,93 @@
+---
+import PeriodControls from "../../components/PeriodControls.astro";
+import SummaryTiles from "../../components/SummaryTiles.astro";
+import { findRoute, PLACEHOLDER_ROUTES, ROUTE_TILES } from "../../data/placeholder";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export function getStaticPaths() {
+  return PLACEHOLDER_ROUTES.map((entry) => ({
+    params: { route: entry.route },
+    props: { routeRef: entry },
+  }));
+}
+
+interface Props {
+  routeRef: (typeof PLACEHOLDER_ROUTES)[number];
+}
+
+const { route } = Astro.params;
+const { routeRef } = Astro.props;
+const resolved = routeRef ?? findRoute(route ?? "");
+---
+
+<BaseLayout
+  title={`Route ${resolved.route} — Metlake`}
+  current="route"
+  attribution="route"
+>
+  <main class="wrap">
+    <section class="route-hero">
+      <p class="eyebrow">Route</p>
+      <h1>{resolved.route}</h1>
+      <p class="desc">{resolved.name}</p>
+      <div class="metric-toggle" role="group" aria-label="Metric">
+        <button type="button" class="chip" data-metric-chip="punctuality" aria-pressed="true">
+          Punctuality
+        </button>
+        <button type="button" class="chip" data-metric-chip="reliability" aria-pressed="false">
+          Reliability
+        </button>
+        <button type="button" class="chip" data-metric-chip="cancellations" aria-pressed="false">
+          Cancellations
+        </button>
+        <button type="button" class="chip" data-metric-chip="peak" aria-pressed="false">
+          Peak only
+        </button>
+      </div>
+    </section>
+
+    <PeriodControls heading="Period" />
+
+    <section class="section">
+      <SummaryTiles tiles={ROUTE_TILES} />
+    </section>
+
+    <section class="section" aria-labelledby="series-heading">
+      <div class="section-head">
+        <h2 id="series-heading">Daily series</h2>
+        <p>One point per day in range.</p>
+      </div>
+      <div class="chart">
+        <svg viewBox="0 0 640 200" role="img" aria-label="Punctuality over time">
+          <polyline
+            fill="none"
+            stroke="var(--transit)"
+            stroke-width="2.5"
+            points="20,80 70,95 120,110 170,88 220,130 270,125 320,145 370,120 420,150 470,140 520,155 570,135 620,148"
+          ></polyline>
+          <line x1="20" y1="170" x2="620" y2="170" stroke="#0e1419" stroke-opacity="0.12"></line>
+        </svg>
+        <div class="chart-legend">
+          <span><i class="swatch-a"></i>Route {resolved.route}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="export-heading">
+      <div class="section-head">
+        <h2 id="export-heading">Export</h2>
+        <p>CSV of this slice, or the underlying Parquet month file.</p>
+      </div>
+      <div class="actions">
+        <a class="btn primary-signal" href={`/routes/${resolved.route}/deep/`}>Open deep dive</a>
+        <a class="btn" href="/query/">Open in query</a>
+        <button type="button" class="btn secondary" disabled>Download CSV</button>
+        <a class="btn secondary" href="/data/">Parquet · 2026-08</a>
+      </div>
+    </section>
+
+    <section class="ai-panel" aria-label="Route commentary">
+      <p class="ai-status">Commentary will load once the data layer is connected.</p>
+    </section>
+  </main>
+</BaseLayout>

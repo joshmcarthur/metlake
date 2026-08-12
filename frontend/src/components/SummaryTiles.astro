@@ -1,0 +1,22 @@
+---
+import type { Tile } from "../data/placeholder";
+
+interface Props {
+  tiles: Tile[];
+  bare?: boolean;
+}
+
+const { tiles, bare = false } = Astro.props;
+---
+
+<div class:list={["tiles", bare && "bare"]}>
+  {
+    tiles.map((tile) => (
+      <article class="tile">
+        <div class="tile-kicker">{tile.kicker}</div>
+        <p class="tile-value">{tile.value}</p>
+        <p class:list={["tile-delta", tile.trend]}>{tile.delta}</p>
+      </article>
+    ))
+  }
+</div>

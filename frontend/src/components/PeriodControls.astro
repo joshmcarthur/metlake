@@ -1,0 +1,67 @@
+---
+import { PLACEHOLDER_PERIOD } from "../data/placeholder";
+
+interface Props {
+  heading: string;
+  headingLevel?: "h1" | "h2";
+  showDayChips?: boolean;
+  showCompare?: boolean;
+}
+
+const {
+  heading,
+  headingLevel = "h2",
+  showDayChips = false,
+  showCompare = true,
+} = Astro.props;
+
+const HeadingTag = headingLevel;
+---
+
+<section class="period" aria-labelledby="period-heading">
+  <div class="period-label">
+    <HeadingTag id="period-heading">{heading}</HeadingTag>
+    <p class="period-meta">{PLACEHOLDER_PERIOD.label}</p>
+  </div>
+  <div class="period-controls">
+    {
+      showDayChips && (
+        <>
+          <button type="button" class="chip" data-period="day" aria-pressed="false">
+            Day
+          </button>
+          <button type="button" class="chip" data-period="yesterday" aria-pressed="false">
+            Yesterday
+          </button>
+        </>
+      )
+    }
+    <button type="button" class="chip" data-period="week" aria-pressed="false">This week</button>
+    <button type="button" class="chip" data-period="month" aria-pressed="true">This month</button>
+    <button type="button" class="chip" data-period="all" aria-pressed="false">All available</button>
+    {
+      showCompare && (
+        <button type="button" class="chip chip-compare" data-compare aria-pressed="false">
+          Compare prior period
+        </button>
+      )
+    }
+    <div class="date-inputs">
+      <label>
+        From
+        <input type="date" name="from" value={PLACEHOLDER_PERIOD.from} />
+      </label>
+      <label>
+        To
+        <input type="date" name="to" value={PLACEHOLDER_PERIOD.to} />
+      </label>
+    </div>
+  </div>
+  {
+    showCompare && (
+      <p class="note" hidden>
+        Deltas compare the selected window to the immediately preceding window of the same length.
+      </p>
+    )
+  }
+</section>

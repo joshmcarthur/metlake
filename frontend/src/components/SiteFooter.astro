@@ -1,0 +1,18 @@
+---
+import type { AttributionKey } from "../lib/site";
+import { ATTRIBUTION } from "../lib/site";
+
+interface Props {
+  variant?: AttributionKey;
+}
+
+const { variant = "network" } = Astro.props;
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>
+      <strong>Attribution:</strong> {ATTRIBUTION[variant]}
+    </p>
+  </div>
+</footer>
