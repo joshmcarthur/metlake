@@ -130,7 +130,7 @@ docker pull ghcr.io/<owner>/metlake:latest
 # or a version tag, e.g. ghcr.io/<owner>/metlake:v1.2.3
 ```
 
-Dependabot opens weekly PRs for GitHub Actions and Docker base-image updates. Patch and minor Dependabot PRs are squash-merged automatically **only after** the CI smoke tests pass.
+Dependabot opens weekly PRs for GitHub Actions and Docker base-image updates. After CI smoke tests pass, patch and minor Dependabot PRs are squash-merged by a follow-on job in the same workflow.
 
 ## Documentation
 
