@@ -19,10 +19,13 @@ import {
   getPriorRange,
   type PeriodState,
 } from "./period";
+import { buildNetworkBrief } from "../commentary/brief";
+import { mountCommentaryPanel } from "../commentary/commentary-app";
 import { renderScorecard, showScorecardLoading } from "./scorecard";
 
 let session: RoutePerformanceSession | null = null;
 let loadToken = 0;
+let commentaryPanel: ReturnType<typeof mountCommentaryPanel> | null = null;
 
 function showEmpty(message: string): void {
   const empty = document.getElementById("overview-empty");
@@ -64,6 +67,7 @@ async function refreshPeriod(state: PeriodState): Promise<void> {
     if (token !== loadToken) return;
 
     renderScorecard(summary, prior, best, attention, state.key, state.compare);
+    commentaryPanel?.updateBrief(buildNetworkBrief(summary, prior, best, attention));
 
     const calRoot = document.getElementById("net-calendar");
     const sparkRoot = document.getElementById("net-cancel-spark");
@@ -97,6 +101,9 @@ export async function initOverviewApp(): Promise<void> {
 
     showContent();
     renderDisabledRtCharts();
+
+    const commentaryRoot = document.querySelector<HTMLElement>("[data-ai-commentary]");
+    if (commentaryRoot) commentaryPanel = mountCommentaryPanel(commentaryRoot);
 
     const periodEls = getPeriodElements(root);
     if (!periodEls) return;

@@ -25,7 +25,7 @@ const resolved = routeRef ?? findRoute(route ?? "");
   current="route"
   attribution="route"
 >
-  <main class="wrap" id="route-root" data-route={resolved.route}>
+  <main class="wrap" id="route-root" data-route={resolved.route} data-route-name={resolved.name}>
     <div class="archive-empty" id="route-loading" role="status">
       <p class="eyebrow">Route</p>
       <h2>Loading route performance</h2>
@@ -88,9 +88,7 @@ const resolved = routeRef ?? findRoute(route ?? "");
         </div>
       </section>
 
-      <section class="ai-panel" aria-label="Route commentary">
-        <p class="ai-status">Commentary will load once the data layer is connected.</p>
-      </section>
+      <section class="ai-panel" data-ai-commentary aria-label="Route commentary"></section>
     </div>
   </main>
 

@@ -185,6 +185,24 @@ main {
   color: var(--ink-muted);
 }
 
+.ai-brief {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 0.85rem;
+  background: #132833;
+  color: #dce8e4;
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  overflow-x: auto;
+  max-height: 220px;
+}
+
+.ai-brief.hidden,
+.hidden.ai-brief {
+  display: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .tile {
     animation: rise 0.4s ease both;

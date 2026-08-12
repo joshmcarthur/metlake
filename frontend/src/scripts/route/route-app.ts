@@ -14,6 +14,8 @@ import {
   getPriorRange,
   type PeriodState,
 } from "../overview/period";
+import { buildRouteBrief } from "../commentary/brief";
+import { mountCommentaryPanel } from "../commentary/commentary-app";
 import { bindCsvExport, updateParquetLink } from "./export";
 import { bindMetricChips, type RouteMetricState } from "./metrics";
 import { renderRouteScorecard, showRouteScorecardLoading } from "./scorecard";
@@ -27,6 +29,8 @@ let routeId = "";
 let cachedSeries: RouteDailyPoint[] | null = null;
 let cachedPriorSeries: RouteDailyPoint[] | null = null;
 let cachedCompare = false;
+let routeName = "";
+let commentaryPanel: ReturnType<typeof mountCommentaryPanel> | null = null;
 
 function showEmpty(message: string): void {
   const empty = document.getElementById("route-empty");
@@ -89,6 +93,7 @@ async function refreshRoute(state: PeriodState): Promise<void> {
     if (token !== loadToken) return;
 
     renderRouteScorecard(summary, prior, state.key, state.compare);
+    commentaryPanel?.updateBrief(buildRouteBrief(routeId, routeName, summary, prior));
 
     cachedSeries = series;
     cachedPriorSeries = priorSeries;
@@ -109,7 +114,11 @@ export async function initRouteApp(): Promise<void> {
   if (!root) return;
 
   routeId = root.dataset.route ?? "";
+  routeName = root.dataset.routeName ?? "";
   if (!routeId) return;
+
+  const commentaryRoot = document.querySelector<HTMLElement>("[data-ai-commentary]");
+  if (commentaryRoot) commentaryPanel = mountCommentaryPanel(commentaryRoot);
 
   session = new RoutePerformanceSession();
   window.addEventListener("pagehide", () => {
