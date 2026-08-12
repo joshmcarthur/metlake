@@ -4,9 +4,10 @@ import type { RouteRef } from "../data/placeholder";
 interface Props {
   best: RouteRef[];
   attention: RouteRef[];
+  interactive?: boolean;
 }
 
-const { best, attention } = Astro.props;
+const { best, attention, interactive = false } = Astro.props;
 
 function rankLabel(index: number): string {
   return String(index + 1).padStart(2, "0");
@@ -16,7 +17,7 @@ function rankLabel(index: number): string {
 <div class="board">
   <div class="board-col winners">
     <h3>Best punctuality</h3>
-    <ol class="rank-list">
+    <ol class="rank-list" data-board={interactive ? "best" : undefined}>
       {
         best.map((entry, index) => (
           <li>
@@ -33,7 +34,7 @@ function rankLabel(index: number): string {
   </div>
   <div class="board-col losers">
     <h3>Needs attention</h3>
-    <ol class="rank-list">
+    <ol class="rank-list" data-board={interactive ? "attention" : undefined}>
       {
         attention.map((entry, index) => (
           <li>

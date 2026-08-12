@@ -41,6 +41,14 @@ export interface RouteDailyPoint {
   scheduled_trips: number | null;
 }
 
+export interface NetworkDailyPoint {
+  day: string;
+  punctuality: number | null;
+  reliability: number | null;
+  cancellations: number | null;
+  cancellations_rate: number | null;
+}
+
 export interface RoutePeakGapRow {
   route: string;
   route_short_name: string | null;

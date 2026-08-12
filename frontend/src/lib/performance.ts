@@ -1,15 +1,9 @@
-import {
-  fetchRoutePerformanceManifest,
-  monthsIntersectingPeriod,
-} from "./manifest";
-import {
-  connectDuckDb,
-  registerRoutePerformanceMonths,
-  ROUTE_PERFORMANCE_VIEW,
-  type DuckDbConnection,
-} from "./duckdb";
+import { monthsIntersectingPeriod } from "./manifest";
+import { ROUTE_PERFORMANCE_VIEW, type DuckDbConnection } from "./duckdb";
+import { RoutePerformanceSession } from "./session";
 import type {
   DateRange,
+  NetworkDailyPoint,
   PeriodSummary,
   RouteDailyPoint,
   RouteLeaderboardRow,
@@ -20,18 +14,23 @@ export interface LoadedRoutePerformance {
   conn: DuckDbConnection;
   range: DateRange;
   months: string[];
+  session: RoutePerformanceSession;
 }
 
 export async function loadRoutePerformance(
   range: DateRange,
+  session: RoutePerformanceSession,
   fetchFn: typeof fetch = fetch,
 ): Promise<LoadedRoutePerformance> {
-  const manifest = await fetchRoutePerformanceManifest(fetchFn);
-  const months = monthsIntersectingPeriod(manifest.months, range.from, range.to);
-  const conn = await connectDuckDb();
-  await registerRoutePerformanceMonths(conn, months);
-  return { conn, range, months };
+  const conn = await session.ensure(range, fetchFn);
+  const manifest = session.getManifest();
+  const months = manifest
+    ? monthsIntersectingPeriod(manifest.months, range.from, range.to)
+    : [];
+  return { conn, range, months, session };
 }
+
+export { RoutePerformanceSession } from "./session";
 
 function toNullableNumber(value: unknown): number | null {
   if (value === null || value === undefined) return null;
@@ -145,6 +144,49 @@ export async function getDailySeries(
     cancellations_rate: toNullableNumber(row.cancellations_rate),
     scheduled_trips: toNullableNumber(row.scheduled_trips),
   }));
+}
+
+export async function getNetworkDailySeries(
+  conn: DuckDbConnection,
+  range: DateRange,
+): Promise<NetworkDailyPoint[]> {
+  const result = await conn.query(`
+    SELECT
+      CAST(day AS VARCHAR) AS day,
+      AVG(punctuality) AS punctuality,
+      AVG(reliability) AS reliability,
+      SUM(cancellations) AS cancellations,
+      AVG(cancellations_rate) AS cancellations_rate
+    FROM ${ROUTE_PERFORMANCE_VIEW}
+    WHERE day >= DATE '${range.from}'
+      AND day <= DATE '${range.to}'
+    GROUP BY day
+    ORDER BY day;
+  `);
+
+  return result.toArray().map((row) => ({
+    day: String(row.day),
+    punctuality: toNullableNumber(row.punctuality),
+    reliability: toNullableNumber(row.reliability),
+    cancellations: toNullableNumber(row.cancellations),
+    cancellations_rate: toNullableNumber(row.cancellations_rate),
+  }));
+}
+
+export async function getDataBounds(
+  conn: DuckDbConnection,
+): Promise<DateRange | null> {
+  const result = await conn.query(`
+    SELECT
+      CAST(MIN(day) AS VARCHAR) AS min_day,
+      CAST(MAX(day) AS VARCHAR) AS max_day
+    FROM ${ROUTE_PERFORMANCE_VIEW};
+  `);
+  const row = firstRow(result);
+  const from = toNullableString(row?.min_day);
+  const to = toNullableString(row?.max_day);
+  if (!from || !to) return null;
+  return { from, to };
 }
 
 export async function getPeakGapByRoute(

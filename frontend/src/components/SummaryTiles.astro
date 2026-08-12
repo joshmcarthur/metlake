@@ -4,18 +4,31 @@ import type { Tile } from "../data/placeholder";
 interface Props {
   tiles: Tile[];
   bare?: boolean;
+  interactive?: boolean;
 }
 
-const { tiles, bare = false } = Astro.props;
+const { tiles, bare = false, interactive = false } = Astro.props;
+
+const metricKeys = ["reliability", "punctuality", "cancellations", "trips"] as const;
 ---
 
 <div class:list={["tiles", bare && "bare"]}>
   {
-    tiles.map((tile) => (
+    tiles.map((tile, index) => (
       <article class="tile">
         <div class="tile-kicker">{tile.kicker}</div>
-        <p class="tile-value">{tile.value}</p>
-        <p class:list={["tile-delta", tile.trend]}>{tile.delta}</p>
+        <p
+          class="tile-value"
+          data-metric={interactive ? metricKeys[index] : undefined}
+        >
+          {tile.value}
+        </p>
+        <p
+          class:list={["tile-delta", tile.trend]}
+          data-delta={interactive ? metricKeys[index] : undefined}
+        >
+          {tile.delta}
+        </p>
       </article>
     ))
   }

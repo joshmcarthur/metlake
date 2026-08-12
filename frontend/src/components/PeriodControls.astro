@@ -6,6 +6,7 @@ interface Props {
   headingLevel?: "h1" | "h2";
   showDayChips?: boolean;
   showCompare?: boolean;
+  interactive?: boolean;
 }
 
 const {
@@ -13,6 +14,7 @@ const {
   headingLevel = "h2",
   showDayChips = false,
   showCompare = true,
+  interactive = false,
 } = Astro.props;
 
 const HeadingTag = headingLevel;
@@ -21,7 +23,9 @@ const HeadingTag = headingLevel;
 <section class="period" aria-labelledby="period-heading">
   <div class="period-label">
     <HeadingTag id="period-heading">{heading}</HeadingTag>
-    <p class="period-meta">{PLACEHOLDER_PERIOD.label}</p>
+    <p class="period-meta" data-period-meta={interactive || undefined}>
+      {PLACEHOLDER_PERIOD.label}
+    </p>
   </div>
   <div class="period-controls">
     {
@@ -49,17 +53,17 @@ const HeadingTag = headingLevel;
     <div class="date-inputs">
       <label>
         From
-        <input type="date" name="from" value={PLACEHOLDER_PERIOD.from} />
+        <input type="date" name="from" data-period-from={interactive || undefined} value={PLACEHOLDER_PERIOD.from} />
       </label>
       <label>
         To
-        <input type="date" name="to" value={PLACEHOLDER_PERIOD.to} />
+        <input type="date" name="to" data-period-to={interactive || undefined} value={PLACEHOLDER_PERIOD.to} />
       </label>
     </div>
   </div>
   {
     showCompare && (
-      <p class="note" hidden>
+      <p class="note" data-compare-note={interactive || undefined} hidden>
         Deltas compare the selected window to the immediately preceding window of the same length.
       </p>
     )

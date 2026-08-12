@@ -3,11 +3,16 @@ interface Props {
   label: string;
   id?: string;
   height?: string;
+  bare?: boolean;
 }
 
-const { label, id, height } = Astro.props;
+const { label, id, height, bare = false } = Astro.props;
 ---
 
-<div class="chart-slot" id={id} style={height ? `--slot-height: ${height}` : undefined}>
-  <p>{label}</p>
+<div
+  class:list={["chart-slot", bare && "bare"]}
+  id={id}
+  style={height ? `--slot-height: ${height}` : undefined}
+>
+  {!bare && <p>{label}</p>}
 </div>

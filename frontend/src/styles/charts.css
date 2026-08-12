@@ -284,3 +284,32 @@
   display: inline-block;
   vertical-align: middle;
 }
+
+.chart-slot.bare {
+  display: block;
+  place-items: unset;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.chart-slot-disabled {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  padding: 1rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--paper) 80%, white);
+  opacity: 0.75;
+}
+
+.rt-stub-note {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  text-align: center;
+  max-width: 32ch;
+}
