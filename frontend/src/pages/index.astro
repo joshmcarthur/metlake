@@ -54,7 +54,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <section class="section" aria-labelledby="board-heading">
         <div class="section-head">
           <h2 id="board-heading">Routes</h2>
-          <p>Best and softest punctuality · open a route for detail.</p>
+          <p>Highest and lowest punctuality · open a route for detail.</p>
         </div>
         <RouteBoard best={BEST_ROUTES} attention={ATTENTION_ROUTES} interactive />
       </section>
@@ -63,7 +63,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <article class="viz-panel" aria-labelledby="cal-heading">
           <div class="viz-head">
             <h2 id="cal-heading">Punctuality by day</h2>
-            <p>Which days the network was soft</p>
+            <p>Days when network punctuality dipped</p>
           </div>
           <ChartSlot id="net-calendar" label="Calendar heat" bare />
           <HeatmapLegend lowLabel="95%+" highLabel="&lt;84%" />
