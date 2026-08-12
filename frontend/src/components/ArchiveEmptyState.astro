@@ -1,0 +1,47 @@
+---
+import { isArchiveError } from "../lib/types";
+
+interface Props {
+  title?: string;
+  message?: string;
+  error?: unknown;
+}
+
+const {
+  title = "No performance data yet",
+  message = "The archive does not have route-performance parquet for this period. Check back after the next derive run.",
+  error,
+} = Astro.props;
+
+const detail =
+  error && isArchiveError(error)
+    ? error.message
+    : error instanceof Error
+      ? error.message
+      : message;
+---
+
+<div class="archive-empty" role="status">
+  <p class="eyebrow">Archive</p>
+  <h2>{title}</h2>
+  <p>{detail}</p>
+</div>
+
+<style>
+  .archive-empty {
+    border: 1px solid var(--border, #d0d8dc);
+    border-radius: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--surface-muted, #f6f8f9);
+  }
+
+  .archive-empty h2 {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 1.125rem;
+  }
+
+  .archive-empty p {
+    margin: 0;
+    color: var(--text-muted, #4a5a63);
+  }
+</style>

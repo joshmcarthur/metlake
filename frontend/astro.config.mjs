@@ -9,6 +9,12 @@ export default defineConfig({
     format: "directory",
   },
   vite: {
+    optimizeDeps: {
+      exclude: ["@duckdb/duckdb-wasm"],
+    },
+    worker: {
+      format: "es",
+    },
     server: {
       watch: {
         ignored: ["**/prototypes/**"],

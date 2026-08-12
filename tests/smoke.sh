@@ -57,6 +57,8 @@ test -f "${ARCHIVE_ROOT}/curated/gtfs/2026-08-01/routes.parquet"
 
 MONTH=2026-08 "${ROOT}/scripts/derive-route-performance.sh"
 test -f "${ARCHIVE_ROOT}/derived/route-performance/2026-08.parquet"
+test -f "${ARCHIVE_ROOT}/derived/route-performance/_manifest.json"
+grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/route-performance/_manifest.json"
 
 rows="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/route-performance/2026-08.parquet');" | tail -n 1)"
 test "${rows}" -ge 1

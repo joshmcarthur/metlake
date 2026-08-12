@@ -47,3 +47,22 @@ log_info "deriving route-performance for ${MONTH} using routes=${routes}"
 duckdb -c ".read ${SQL_DIR}/derive_route_performance.sql"
 atomic_mv "${tmp}" "${dest}"
 log_info "wrote ${dest}"
+
+manifest="${dest_dir}/_manifest.json"
+updated_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+months_json="["
+first=1
+while IFS= read -r parquet_path; do
+  [[ -z "${parquet_path}" ]] && continue
+  month="$(basename "${parquet_path}" .parquet)"
+  if [[ "${first}" -eq 1 ]]; then
+    months_json+="\"${month}\""
+    first=0
+  else
+    months_json+=",\"${month}\""
+  fi
+done < <(find "${dest_dir}" -maxdepth 1 -type f -name '*.parquet' | LC_ALL=C sort)
+months_json+="]"
+printf '{"months":%s,"updated_at":"%s"}\n' "${months_json}" "${updated_at}" \
+  | atomic_write_stdin "${manifest}"
+log_info "wrote ${manifest}"
