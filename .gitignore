@@ -1,0 +1,24 @@
+# Secrets and local env
+.env
+.env.*
+!.env.example
+*.pem
+credentials*
+*secret*
+
+# Local archive / data
+archive/
+/data/
+*.duckdb
+*.duckdb.wal
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Test scratch
+/tmp/
+tests/tmp/
