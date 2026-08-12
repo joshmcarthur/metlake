@@ -38,11 +38,32 @@ export class RoutePerformanceSession {
   }
 
   async ensure(range: DateRange, fetchFn: typeof fetch = fetch): Promise<DuckDbConnection> {
+    return this.ensureRanges(range, fetchFn);
+  }
+
+  async ensureRanges(
+    range: DateRange,
+    fetchFn: typeof fetch = fetch,
+    priorRange?: DateRange | null,
+  ): Promise<DuckDbConnection> {
     if (!this.manifest) {
       this.manifest = await fetchRoutePerformanceManifest(fetchFn);
     }
 
-    const months = monthsIntersectingPeriod(this.manifest.months, range.from, range.to);
+    const monthSet = new Set(
+      monthsIntersectingPeriod(this.manifest.months, range.from, range.to),
+    );
+    if (priorRange) {
+      for (const month of monthsIntersectingPeriod(
+        this.manifest.months,
+        priorRange.from,
+        priorRange.to,
+      )) {
+        monthSet.add(month);
+      }
+    }
+
+    const months = [...monthSet].sort();
     if (!this.conn) {
       this.conn = await connectDuckDb();
     }
@@ -51,7 +72,7 @@ export class RoutePerformanceSession {
     const registeredKey = this.registeredMonths.join(",");
     if (monthsKey !== registeredKey) {
       await registerRoutePerformanceMonths(this.conn, months);
-      this.registeredMonths = [...months];
+      this.registeredMonths = months;
     }
 
     return this.conn;

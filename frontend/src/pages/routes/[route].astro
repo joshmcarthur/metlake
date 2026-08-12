@@ -1,14 +1,17 @@
 ---
 import PeriodControls from "../../components/PeriodControls.astro";
 import SummaryTiles from "../../components/SummaryTiles.astro";
-import { findRoute, PLACEHOLDER_ROUTES, ROUTE_TILES } from "../../data/placeholder";
+import { findRoute, PLACEHOLDER_ROUTES, ROUTE_SHELL, ROUTE_TILES } from "../../data/placeholder";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export function getStaticPaths() {
-  return PLACEHOLDER_ROUTES.map((entry) => ({
-    params: { route: entry.route },
-    props: { routeRef: entry },
-  }));
+  return [
+    ...PLACEHOLDER_ROUTES.map((entry) => ({
+      params: { route: entry.route },
+      props: { routeRef: entry },
+    })),
+    { params: { route: ROUTE_SHELL.route }, props: { routeRef: ROUTE_SHELL } },
+  ];
 }
 
 interface Props {

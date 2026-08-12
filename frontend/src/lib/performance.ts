@@ -21,12 +21,23 @@ export async function loadRoutePerformance(
   range: DateRange,
   session: RoutePerformanceSession,
   fetchFn: typeof fetch = fetch,
+  priorRange?: DateRange | null,
 ): Promise<LoadedRoutePerformance> {
-  const conn = await session.ensure(range, fetchFn);
+  const conn = await session.ensureRanges(range, fetchFn, priorRange);
   const manifest = session.getManifest();
-  const months = manifest
-    ? monthsIntersectingPeriod(manifest.months, range.from, range.to)
-    : [];
+  const monthSet = new Set(
+    manifest ? monthsIntersectingPeriod(manifest.months, range.from, range.to) : [],
+  );
+  if (priorRange && manifest) {
+    for (const month of monthsIntersectingPeriod(
+      manifest.months,
+      priorRange.from,
+      priorRange.to,
+    )) {
+      monthSet.add(month);
+    }
+  }
+  const months = [...monthSet].sort();
   return { conn, range, months, session };
 }
 

@@ -1,4 +1,5 @@
 import { fetchRoutePerformanceManifest } from "../../lib/manifest";
+import { routeIdFromDocument } from "../../lib/route-path";
 import {
   getRoutePeriodSummary,
   loadRoutePerformance,
@@ -24,7 +25,7 @@ let commentaryPanel: ReturnType<typeof mountCommentaryPanel> | null = null;
 let currentDirection: Direction = "inbound";
 
 function updateHero(root: HTMLElement, direction: Direction): void {
-  const routeId = root.dataset.route ?? "";
+  const routeId = routeIdFromDocument(root);
   const routeName = root.dataset.routeName ?? "";
   const hero = heroForDirection(routeId, routeName, direction);
 
@@ -50,13 +51,13 @@ async function refreshCommentary(
 ): Promise<void> {
   if (!session || !commentaryPanel) return;
 
-  const routeId = root.dataset.route ?? "";
+  const routeId = routeIdFromDocument(root);
   const routeName = root.dataset.routeName ?? "";
   if (!routeId) return;
 
   try {
-    const { conn } = await loadRoutePerformance(state.range, session);
     const priorRange = state.compare ? getPriorRange(state.range) : null;
+    const { conn } = await loadRoutePerformance(state.range, session, fetch, priorRange);
     const [summary, prior] = await Promise.all([
       getRoutePeriodSummary(conn, routeId, state.range),
       priorRange ? getRoutePeriodSummary(conn, routeId, priorRange) : Promise.resolve(null),
@@ -75,6 +76,16 @@ async function refreshCommentary(
 export async function initRouteDeepApp(): Promise<void> {
   const root = document.getElementById("route-deep-root");
   if (!root) return;
+
+  const routeId = routeIdFromDocument(root);
+  if (routeId) {
+    root.dataset.route = routeId;
+    const backLink = root.querySelector<HTMLAnchorElement>('a[href*="/routes/"]');
+    if (backLink && backLink.textContent?.includes("Back")) {
+      backLink.href = `/routes/${encodeURIComponent(routeId)}/`;
+    }
+    document.title = `Route ${routeId} deep dive — Metlake`;
+  }
 
   const commentaryRoot = root.querySelector<HTMLElement>("[data-ai-commentary]");
   if (commentaryRoot) commentaryPanel = mountCommentaryPanel(commentaryRoot);

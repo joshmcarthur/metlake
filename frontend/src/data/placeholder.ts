@@ -9,6 +9,11 @@ export interface RouteRef {
   name: string;
 }
 
+/** Prerendered client shell for routes not emitted at build time. */
+export const ROUTE_SHELL_ID = "__any__";
+
+export const ROUTE_SHELL: RouteRef = { route: ROUTE_SHELL_ID, name: "" };
+
 export const PLACEHOLDER_ROUTES: RouteRef[] = [
   { route: "83", name: "Eastbourne — Lower Hutt — Petone — Wellington" },
   { route: "2", name: "Karori South — Wellington" },

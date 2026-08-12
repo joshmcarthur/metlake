@@ -6,6 +6,19 @@
 
 	handle {
 		root * /srv
+
+		@routeScorecard path_regexp ^/routes/[^/]+/?$
+		handle @routeScorecard {
+			try_files {path} {path}/ {path}/index.html /routes/__any__/index.html
+			file_server
+		}
+
+		@routeDeep path_regexp ^/routes/[^/]+/deep/?$
+		handle @routeDeep {
+			try_files {path} {path}/ {path}/index.html /routes/__any__/deep/index.html
+			file_server
+		}
+
 		try_files {path} {path}/ {path}/index.html /index.html
 		file_server
 	}

@@ -51,10 +51,10 @@ async function refreshPeriod(state: PeriodState): Promise<void> {
   showScorecardLoading();
 
   try {
-    const { conn } = await loadRoutePerformance(state.range, session);
+    const priorRange = state.compare ? getPriorRange(state.range) : null;
+    const { conn } = await loadRoutePerformance(state.range, session, fetch, priorRange);
     if (token !== loadToken) return;
 
-    const priorRange = state.compare ? getPriorRange(state.range) : null;
     const [summary, prior, best, attention, daily, peakGap] = await Promise.all([
       getPeriodSummary(conn, state.range),
       priorRange ? getPeriodSummary(conn, priorRange) : Promise.resolve(null),

@@ -6,6 +6,7 @@ import {
   RoutePerformanceSession,
 } from "../../lib/performance";
 import { fetchRoutePerformanceManifest, monthsIntersectingPeriod } from "../../lib/manifest";
+import { routeIdFromDocument } from "../../lib/route-path";
 import { isArchiveError, type RouteDailyPoint } from "../../lib/types";
 import {
   bindPeriodControls,
@@ -65,6 +66,18 @@ function rerenderSeriesForMetric(): void {
   );
 }
 
+function syncRouteHero(root: HTMLElement): void {
+  const title = root.querySelector("h1");
+  const desc = root.querySelector<HTMLElement>(".desc");
+  const deepLink = root.querySelector<HTMLAnchorElement>('a[href*="/deep/"]');
+  if (title) title.textContent = routeId;
+  if (desc) desc.textContent = routeName;
+  if (deepLink) deepLink.href = `/routes/${encodeURIComponent(routeId)}/deep/`;
+  root.dataset.route = routeId;
+  root.dataset.routeName = routeName;
+  document.title = `Route ${routeId} — Metlake`;
+}
+
 async function refreshRoute(state: PeriodState): Promise<void> {
   if (!session) return;
 
@@ -72,7 +85,8 @@ async function refreshRoute(state: PeriodState): Promise<void> {
   showRouteScorecardLoading();
 
   try {
-    const { conn } = await loadRoutePerformance(state.range, session);
+    const priorRange = state.compare ? getPriorRange(state.range) : null;
+    const { conn } = await loadRoutePerformance(state.range, session, fetch, priorRange);
     if (token !== loadToken) return;
 
     const manifest = session.getManifest();
@@ -82,7 +96,6 @@ async function refreshRoute(state: PeriodState): Promise<void> {
     const latestMonth = months[months.length - 1];
     if (latestMonth) updateParquetLink(latestMonth);
 
-    const priorRange = state.compare ? getPriorRange(state.range) : null;
     const [summary, prior, series, priorSeries] = await Promise.all([
       getRoutePeriodSummary(conn, routeId, state.range),
       priorRange ? getRoutePeriodSummary(conn, routeId, priorRange) : Promise.resolve(null),
@@ -113,9 +126,11 @@ export async function initRouteApp(): Promise<void> {
   const root = document.getElementById("route-root");
   if (!root) return;
 
-  routeId = root.dataset.route ?? "";
+  routeId = routeIdFromDocument(root);
   routeName = root.dataset.routeName ?? "";
   if (!routeId) return;
+
+  syncRouteHero(root);
 
   const commentaryRoot = document.querySelector<HTMLElement>("[data-ai-commentary]");
   if (commentaryRoot) commentaryPanel = mountCommentaryPanel(commentaryRoot);
@@ -131,7 +146,15 @@ export async function initRouteApp(): Promise<void> {
       csvButton,
       async () => {
         if (!session || !currentPeriod) return [];
-        const { conn } = await loadRoutePerformance(currentPeriod.range, session);
+        const priorRange = currentPeriod.compare
+          ? getPriorRange(currentPeriod.range)
+          : null;
+        const { conn } = await loadRoutePerformance(
+          currentPeriod.range,
+          session,
+          fetch,
+          priorRange,
+        );
         return getRouteDailyExport(conn, routeId, currentPeriod.range);
       },
       `route-${routeId}`,
