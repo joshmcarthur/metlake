@@ -1,5 +1,4 @@
 ---
-import ChartSlot from "../../../components/ChartSlot.astro";
 import HeatmapLegend from "../../../components/HeatmapLegend.astro";
 import PeriodControls from "../../../components/PeriodControls.astro";
 import SummaryTiles from "../../../components/SummaryTiles.astro";
@@ -27,11 +26,11 @@ const resolved = routeRef ?? findRoute(route ?? "");
   current="route-deep"
   attribution="deep"
 >
-  <main class="wrap">
+  <main class="wrap" id="route-deep-root" data-route={resolved.route} data-route-name={resolved.name}>
     <section class="route-hero">
       <p class="eyebrow">Route deep</p>
-      <h1>{resolved.route} · inbound</h1>
-      <p class="desc">{resolved.name} · where delay forms</p>
+      <h1 data-direction-title>{resolved.route} · inbound</h1>
+      <p class="desc" data-direction-desc>{resolved.name} · where delay forms</p>
       <div class="direction-toggle" role="group" aria-label="Direction">
         <button type="button" class="chip" data-direction="inbound" aria-pressed="true">Inbound</button>
         <button type="button" class="chip" data-direction="outbound" aria-pressed="false">
@@ -40,7 +39,7 @@ const resolved = routeRef ?? findRoute(route ?? "");
       </div>
     </section>
 
-    <PeriodControls heading="Period" showCompare={false} />
+    <PeriodControls heading="Period" showCompare={false} interactive />
 
     <section class="section">
       <ul class="callout-insights">
@@ -61,7 +60,7 @@ const resolved = routeRef ?? findRoute(route ?? "");
         <h2 id="profile-heading">Delay along the route</h2>
         <p>Median delay at each stop · band = 25th–75th percentile (seconds late)</p>
       </div>
-      <ChartSlot id="profile-root" label="Stop profile · awaiting data" />
+      <div id="profile-root" class="chart-slot-disabled" aria-label="Stop profile chart"></div>
     </section>
 
     <section class="section viz-grid two">
@@ -70,7 +69,7 @@ const resolved = routeRef ?? findRoute(route ?? "");
           <h2 id="inject-heading">Where delay is introduced</h2>
           <p>Average extra seconds added between consecutive stops</p>
         </div>
-        <ChartSlot id="injector-list" label="Injector list · awaiting data" height="180px" />
+        <ol class="injector-list" id="injector-list" aria-label="Delay injector list"></ol>
       </article>
 
       <article class="viz-panel" aria-labelledby="tod-heading">
@@ -78,7 +77,7 @@ const resolved = routeRef ?? findRoute(route ?? "");
           <h2 id="tod-heading">Delay through the day</h2>
           <p>Median trip delay (seconds) by weekday × departure hour</p>
         </div>
-        <ChartSlot id="heatmap-root" label="Time-of-day heatmap · awaiting data" />
+        <div class="heatmap" id="heatmap-root" aria-label="Time-of-day heatmap"></div>
         <HeatmapLegend lowLabel="on time" highLabel="+4m+" />
       </article>
     </section>
@@ -109,4 +108,6 @@ const resolved = routeRef ?? findRoute(route ?? "");
       <p class="ai-status">Commentary will load once the data layer is connected.</p>
     </section>
   </main>
+
+  <script src="../../../scripts/route-deep/route-deep-app.ts"></script>
 </BaseLayout>

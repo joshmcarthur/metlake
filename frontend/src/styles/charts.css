@@ -313,3 +313,35 @@
   text-align: center;
   max-width: 32ch;
 }
+
+.profile-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.profile-chart .axis {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+
+.profile-chart .median {
+  fill: none;
+  stroke: var(--transit);
+  stroke-width: 2.5;
+}
+
+.profile-chart .band {
+  fill: color-mix(in srgb, var(--transit) 18%, transparent);
+}
+
+.profile-chart .stop-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-muted);
+}
+
+.profile-chart .zero {
+  stroke: var(--line);
+  stroke-dasharray: 3 3;
+}
