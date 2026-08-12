@@ -122,3 +122,7 @@
 .compare-legend[hidden] {
   display: none;
 }
+
+.chart-legend .swatch-b {
+  background: #c9a227;
+}

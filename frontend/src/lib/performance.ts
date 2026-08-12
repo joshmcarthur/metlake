@@ -47,6 +47,39 @@ function firstRow(table: { toArray(): Record<string, unknown>[] }): Record<strin
   return table.toArray()[0];
 }
 
+export async function getRoutePeriodSummary(
+  conn: DuckDbConnection,
+  route: string,
+  range: DateRange,
+): Promise<PeriodSummary> {
+  const safeRoute = route.replace(/'/g, "''");
+  const result = await conn.query(`
+    SELECT
+      SUM(scheduled_trips) AS scheduled_trips,
+      AVG(reliability) AS reliability,
+      AVG(punctuality) AS punctuality,
+      SUM(cancellations) AS cancellations,
+      AVG(cancellations_rate) AS cancellations_rate,
+      AVG(mean_departure_time_variance) AS mean_departure_time_variance
+    FROM ${ROUTE_PERFORMANCE_VIEW}
+    WHERE route = '${safeRoute}'
+      AND day >= DATE '${range.from}'
+      AND day <= DATE '${range.to}';
+  `);
+
+  const row = firstRow(result);
+  return {
+    from: range.from,
+    to: range.to,
+    scheduled_trips: toNullableNumber(row?.scheduled_trips),
+    reliability: toNullableNumber(row?.reliability),
+    punctuality: toNullableNumber(row?.punctuality),
+    cancellations: toNullableNumber(row?.cancellations),
+    cancellations_rate: toNullableNumber(row?.cancellations_rate),
+    mean_departure_time_variance: toNullableNumber(row?.mean_departure_time_variance),
+  };
+}
+
 export async function getPeriodSummary(
   conn: DuckDbConnection,
   range: DateRange,
@@ -128,7 +161,9 @@ export async function getDailySeries(
       reliability,
       cancellations,
       cancellations_rate,
-      scheduled_trips
+      scheduled_trips,
+      peak_punctuality,
+      mean_departure_time_variance
     FROM ${ROUTE_PERFORMANCE_VIEW}
     WHERE route = '${safeRoute}'
       AND day >= DATE '${range.from}'
@@ -143,7 +178,37 @@ export async function getDailySeries(
     cancellations: toNullableNumber(row.cancellations),
     cancellations_rate: toNullableNumber(row.cancellations_rate),
     scheduled_trips: toNullableNumber(row.scheduled_trips),
+    peak_punctuality: toNullableNumber(row.peak_punctuality),
+    mean_departure_time_variance: toNullableNumber(row.mean_departure_time_variance),
   }));
+}
+
+export async function getRouteDailyExport(
+  conn: DuckDbConnection,
+  route: string,
+  range: DateRange,
+): Promise<Record<string, unknown>[]> {
+  const safeRoute = route.replace(/'/g, "''");
+  const result = await conn.query(`
+    SELECT
+      CAST(day AS VARCHAR) AS day,
+      route,
+      route_short_name,
+      route_long_name,
+      punctuality,
+      reliability,
+      cancellations,
+      cancellations_rate,
+      scheduled_trips,
+      peak_punctuality,
+      mean_departure_time_variance
+    FROM ${ROUTE_PERFORMANCE_VIEW}
+    WHERE route = '${safeRoute}'
+      AND day >= DATE '${range.from}'
+      AND day <= DATE '${range.to}'
+    ORDER BY day;
+  `);
+  return result.toArray();
 }
 
 export async function getNetworkDailySeries(

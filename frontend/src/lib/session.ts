@@ -17,6 +17,26 @@ export class RoutePerformanceSession {
     this.manifest = manifest;
   }
 
+  async ensureAllMonths(fetchFn: typeof fetch = fetch): Promise<DuckDbConnection> {
+    if (!this.manifest) {
+      this.manifest = await fetchRoutePerformanceManifest(fetchFn);
+    }
+
+    if (!this.conn) {
+      this.conn = await connectDuckDb();
+    }
+
+    const months = [...this.manifest.months];
+    const monthsKey = months.join(",");
+    const registeredKey = this.registeredMonths.join(",");
+    if (monthsKey !== registeredKey) {
+      await registerRoutePerformanceMonths(this.conn, months);
+      this.registeredMonths = months;
+    }
+
+    return this.conn;
+  }
+
   async ensure(range: DateRange, fetchFn: typeof fetch = fetch): Promise<DuckDbConnection> {
     if (!this.manifest) {
       this.manifest = await fetchRoutePerformanceManifest(fetchFn);

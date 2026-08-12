@@ -5,11 +5,15 @@ interface Props {
   tiles: Tile[];
   bare?: boolean;
   interactive?: boolean;
+  variant?: "network" | "route";
 }
 
-const { tiles, bare = false, interactive = false } = Astro.props;
+const { tiles, bare = false, interactive = false, variant = "network" } = Astro.props;
 
-const metricKeys = ["reliability", "punctuality", "cancellations", "trips"] as const;
+const metricKeys =
+  variant === "route"
+    ? (["punctuality", "reliability", "cancellations", "variance"] as const)
+    : (["reliability", "punctuality", "cancellations", "trips"] as const);
 ---
 
 <div class:list={["tiles", bare && "bare"]}>

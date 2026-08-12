@@ -39,6 +39,8 @@ export interface RouteDailyPoint {
   cancellations: number | null;
   cancellations_rate: number | null;
   scheduled_trips: number | null;
+  peak_punctuality: number | null;
+  mean_departure_time_variance: number | null;
 }
 
 export interface NetworkDailyPoint {

@@ -29,6 +29,32 @@ export function formatCount(value: number | null): string {
   return Math.round(value).toLocaleString("en-NZ");
 }
 
+/** Mean departure variance is stored in minutes. */
+export function formatMinutes(value: number | null, digits = 1): string {
+  if (value === null || !Number.isFinite(value)) return "—";
+  return `${value.toFixed(digits)}m`;
+}
+
+export function formatMinutesDelta(
+  current: number | null,
+  prior: number | null,
+  label: string,
+): MetricDelta {
+  if (current === null || prior === null) {
+    return { text: `— vs ${label}`, trend: "flat" };
+  }
+  const diff = current - prior;
+  if (Math.abs(diff) < 0.05) {
+    return { text: `flat vs ${label}`, trend: "flat" };
+  }
+  const sign = diff > 0 ? "+" : "−";
+  const trend: DeltaTrend = diff < 0 ? "up" : "down";
+  return {
+    text: `${sign}${Math.abs(diff).toFixed(1)}m vs ${label}`,
+    trend,
+  };
+}
+
 export type DeltaTrend = "up" | "down" | "flat";
 
 export interface MetricDelta {
