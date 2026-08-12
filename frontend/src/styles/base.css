@@ -139,27 +139,63 @@ main {
   color: var(--ink);
 }
 
-.ai-panel {
-  margin-top: 1.15rem;
-  margin-bottom: 1.35rem;
+.ai-rail {
+  min-width: 0;
 }
 
-.ai-panel--lead {
-  margin-top: 1.15rem;
-  margin-bottom: 1.35rem;
-}
-
+.ai-rail .ai-commentary,
 .ai-commentary {
   margin: 0;
-  max-width: 42rem;
-  color: var(--ink);
-  font-size: 1.05rem;
+  color: var(--ink-muted);
+  font-size: 0.95rem;
   line-height: 1.55;
   white-space: pre-wrap;
 }
 
-.ai-commentary:empty::before {
-  content: "";
+.page-with-rail {
+  width: min(100% - 1.75rem, var(--max));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-with-rail > .page-main {
+  min-width: 0;
+  width: 100%;
+}
+
+/* On narrow viewports keep commentary after the scorecard so generation
+   never pushes tiles/charts down while streaming. */
+.page-with-rail > .ai-rail {
+  order: 2;
+}
+
+.page-with-rail > .page-main {
+  order: 1;
+}
+
+@media (min-width: 1180px) {
+  .page-with-rail {
+    --ai-rail: 17.5rem;
+    width: min(100% - 1.75rem, calc(var(--max) + var(--ai-rail) + 1.5rem));
+    display: grid;
+    grid-template-columns: minmax(0, var(--max)) var(--ai-rail);
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+
+  .page-with-rail > .page-main,
+  .page-with-rail > .ai-rail {
+    order: initial;
+  }
+
+  .page-with-rail > .ai-rail {
+    position: sticky;
+    top: 1rem;
+    /* Sit beside the period block rather than the very top of the page. */
+    margin-top: 5.5rem;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {

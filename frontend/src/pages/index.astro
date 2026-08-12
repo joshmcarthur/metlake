@@ -1,5 +1,6 @@
 ---
 import ChartSlot from "../components/ChartSlot.astro";
+import CommentaryRail from "../components/CommentaryRail.astro";
 import HeatmapLegend from "../components/HeatmapLegend.astro";
 import PeriodControls from "../components/PeriodControls.astro";
 import RouteBoard from "../components/RouteBoard.astro";
@@ -18,98 +19,100 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   showSiblingNote
   attribution="network"
 >
-  <main class="wrap" id="overview-root">
-    <div class="archive-empty" id="overview-loading" role="status">
-      <p class="eyebrow">Archive</p>
-      <h2>Loading performance data</h2>
-      <p>Fetching route-performance manifest…</p>
-    </div>
+  <div class="page-with-rail" id="overview-root">
+    <main class="page-main">
+      <div class="archive-empty" id="overview-loading" role="status">
+        <p class="eyebrow">Archive</p>
+        <h2>Loading performance data</h2>
+        <p>Fetching route-performance manifest…</p>
+      </div>
 
-    <div class="archive-empty" id="overview-empty" hidden>
-      <p class="eyebrow">Archive</p>
-      <h2>No performance data yet</h2>
-      <p data-empty-detail>
-        The archive does not have route-performance parquet for this period.
-      </p>
-    </div>
+      <div class="archive-empty" id="overview-empty" hidden>
+        <p class="eyebrow">Archive</p>
+        <h2>No performance data yet</h2>
+        <p data-empty-detail>
+          The archive does not have route-performance parquet for this period.
+        </p>
+      </div>
 
-    <div id="overview-content" hidden>
-      <PeriodControls
-        heading="Network performance"
-        headingLevel="h1"
-        showDayChips
-        showCompare
-        interactive
-      />
+      <div id="overview-content" hidden>
+        <PeriodControls
+          heading="Network performance"
+          headingLevel="h1"
+          showDayChips
+          showCompare
+          interactive
+        />
 
-      <section class="ai-panel ai-panel--lead" data-ai-commentary aria-label="Network commentary"></section>
-
-      <section class="section" aria-labelledby="summary-heading">
-        <div class="section-head">
-          <h2 id="summary-heading">Summary</h2>
-          <p>Metlink published bus performance for the selected period.</p>
-        </div>
-        <SummaryTiles tiles={NETWORK_TILES} interactive />
-      </section>
-
-      <section class="section" aria-labelledby="board-heading">
-        <div class="section-head">
-          <h2 id="board-heading">Routes</h2>
-          <p>Most and least punctual · open a route for detail.</p>
-        </div>
-        <RouteBoard best={BEST_ROUTES} attention={ATTENTION_ROUTES} interactive />
-      </section>
-
-      <section class="section viz-grid two">
-        <article class="viz-panel" aria-labelledby="cal-heading">
-          <div class="viz-head">
-            <h2 id="cal-heading">Punctuality by day</h2>
-            <p>Days when network punctuality dipped</p>
+        <section class="section" aria-labelledby="summary-heading">
+          <div class="section-head">
+            <h2 id="summary-heading">Summary</h2>
+            <p>Metlink published bus performance for the selected period.</p>
           </div>
-          <ChartSlot id="net-calendar" label="Calendar heat" bare />
-          <HeatmapLegend lowLabel="95%+" highLabel="&lt;84%" />
-        </article>
+          <SummaryTiles tiles={NETWORK_TILES} interactive />
+        </section>
 
-        <article class="viz-panel" aria-labelledby="cancel-heading">
-          <div class="viz-head">
-            <h2 id="cancel-heading">Cancellations</h2>
-            <p>Spike days vs steady noise</p>
+        <section class="section" aria-labelledby="board-heading">
+          <div class="section-head">
+            <h2 id="board-heading">Routes</h2>
+            <p>Most and least punctual · open a route for detail.</p>
           </div>
-          <ChartSlot id="net-cancel-spark" label="Cancellation sparkline" bare />
-        </article>
-      </section>
+          <RouteBoard best={BEST_ROUTES} attention={ATTENTION_ROUTES} interactive />
+        </section>
 
-      <section class="section viz-panel" aria-labelledby="scatter-heading">
-        <div class="viz-head">
-          <h2 id="scatter-heading">Peak pain vs all-day score</h2>
-          <p>Each point is a route · higher = peak much worse than all-day</p>
-        </div>
-        <ChartSlot id="net-scatter" label="Route scatter" bare />
-      </section>
+        <section class="section viz-grid two">
+          <article class="viz-panel" aria-labelledby="cal-heading">
+            <div class="viz-head">
+              <h2 id="cal-heading">Punctuality by day</h2>
+              <p>Days when network punctuality dipped</p>
+            </div>
+            <ChartSlot id="net-calendar" label="Calendar heat" bare />
+            <HeatmapLegend lowLabel="95%+" highLabel="&lt;84%" />
+          </article>
 
-      <section class="section viz-panel" aria-labelledby="hour-heading">
-        <div class="viz-head">
-          <h2 id="hour-heading">When the network loads up</h2>
-          <p>Median delay (seconds) by weekday × hour · from trip updates when available</p>
-        </div>
-        <ChartSlot id="net-hour-heat" label="Hourly heatmap" bare />
-        <HeatmapLegend lowLabel="on time" highLabel="+4m+" />
-      </section>
+          <article class="viz-panel" aria-labelledby="cancel-heading">
+            <div class="viz-head">
+              <h2 id="cancel-heading">Cancellations</h2>
+              <p>Spike days vs steady noise</p>
+            </div>
+            <ChartSlot id="net-cancel-spark" label="Cancellation sparkline" bare />
+          </article>
+        </section>
 
-      <section class="section viz-panel" aria-labelledby="corridor-heading">
-        <div class="viz-head">
-          <h2 id="corridor-heading">Shared choke points</h2>
-          <p>Segments that inject delay across multiple routes</p>
-        </div>
-        <ChartSlot id="net-corridors" label="Corridor table" bare />
-        <div class="actions" style="margin-top: 0.85rem">
-          <a class="btn primary-signal" data-deep-link href="/routes/83/deep/">
-            Open deep dive
-          </a>
-        </div>
-      </section>
-    </div>
-  </main>
+        <section class="section viz-panel" aria-labelledby="scatter-heading">
+          <div class="viz-head">
+            <h2 id="scatter-heading">Peak pain vs all-day score</h2>
+            <p>Each point is a route · higher = peak much worse than all-day</p>
+          </div>
+          <ChartSlot id="net-scatter" label="Route scatter" bare />
+        </section>
+
+        <section class="section viz-panel" aria-labelledby="hour-heading">
+          <div class="viz-head">
+            <h2 id="hour-heading">When the network loads up</h2>
+            <p>Median delay (seconds) by weekday × hour · from trip updates when available</p>
+          </div>
+          <ChartSlot id="net-hour-heat" label="Hourly heatmap" bare />
+          <HeatmapLegend lowLabel="on time" highLabel="+4m+" />
+        </section>
+
+        <section class="section viz-panel" aria-labelledby="corridor-heading">
+          <div class="viz-head">
+            <h2 id="corridor-heading">Shared choke points</h2>
+            <p>Segments that inject delay across multiple routes</p>
+          </div>
+          <ChartSlot id="net-corridors" label="Corridor table" bare />
+          <div class="actions" style="margin-top: 0.85rem">
+            <a class="btn primary-signal" data-deep-link href="/routes/83/deep/">
+              Open deep dive
+            </a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <CommentaryRail label="Network commentary" />
+  </div>
 
   <script src="../scripts/overview/overview-app.ts"></script>
   <script>

@@ -1,4 +1,5 @@
 ---
+import CommentaryRail from "../../components/CommentaryRail.astro";
 import PeriodControls from "../../components/PeriodControls.astro";
 import SummaryTiles from "../../components/SummaryTiles.astro";
 import { findRoute, PLACEHOLDER_ROUTES, ROUTE_SHELL, ROUTE_TILES } from "../../data/placeholder";
@@ -28,72 +29,79 @@ const resolved = routeRef ?? findRoute(route ?? "");
   current="route"
   attribution="route"
 >
-  <main class="wrap" id="route-root" data-route={resolved.route} data-route-name={resolved.name}>
-    <div class="archive-empty" id="route-loading" role="status">
-      <p class="eyebrow">Route</p>
-      <h2>Loading route performance</h2>
-      <p>Fetching route-performance manifest…</p>
-    </div>
-
-    <div class="archive-empty" id="route-empty" hidden>
-      <p class="eyebrow">Route</p>
-      <h2>No performance data yet</h2>
-      <p data-empty-detail>
-        The archive does not have route-performance parquet for this route or period.
-      </p>
-    </div>
-
-    <div id="route-content" hidden>
-      <section class="route-hero">
+  <div
+    class="page-with-rail"
+    id="route-root"
+    data-route={resolved.route}
+    data-route-name={resolved.name}
+  >
+    <main class="page-main">
+      <div class="archive-empty" id="route-loading" role="status">
         <p class="eyebrow">Route</p>
-        <h1>{resolved.route}</h1>
-        <p class="desc">{resolved.name}</p>
-        <div class="metric-toggle" role="group" aria-label="Metric">
-          <button type="button" class="chip" data-metric-chip="punctuality" aria-pressed="true">
-            Punctuality
-          </button>
-          <button type="button" class="chip" data-metric-chip="reliability" aria-pressed="false">
-            Reliability
-          </button>
-          <button type="button" class="chip" data-metric-chip="cancellations" aria-pressed="false">
-            Cancellations
-          </button>
-          <button type="button" class="chip" data-metric-chip="peak" aria-pressed="false">
-            Peak only
-          </button>
-        </div>
-      </section>
+        <h2>Loading route performance</h2>
+        <p>Fetching route-performance manifest…</p>
+      </div>
 
-      <PeriodControls heading="Period" interactive showCompare />
+      <div class="archive-empty" id="route-empty" hidden>
+        <p class="eyebrow">Route</p>
+        <h2>No performance data yet</h2>
+        <p data-empty-detail>
+          The archive does not have route-performance parquet for this route or period.
+        </p>
+      </div>
 
-      <section class="ai-panel ai-panel--lead" data-ai-commentary aria-label="Route commentary"></section>
+      <div id="route-content" hidden>
+        <section class="route-hero">
+          <p class="eyebrow">Route</p>
+          <h1>{resolved.route}</h1>
+          <p class="desc">{resolved.name}</p>
+          <div class="metric-toggle" role="group" aria-label="Metric">
+            <button type="button" class="chip" data-metric-chip="punctuality" aria-pressed="true">
+              Punctuality
+            </button>
+            <button type="button" class="chip" data-metric-chip="reliability" aria-pressed="false">
+              Reliability
+            </button>
+            <button type="button" class="chip" data-metric-chip="cancellations" aria-pressed="false">
+              Cancellations
+            </button>
+            <button type="button" class="chip" data-metric-chip="peak" aria-pressed="false">
+              Peak only
+            </button>
+          </div>
+        </section>
 
-      <section class="section">
-        <SummaryTiles tiles={ROUTE_TILES} interactive variant="route" />
-      </section>
+        <PeriodControls heading="Period" interactive showCompare />
 
-      <section class="section" aria-labelledby="series-heading">
-        <div class="section-head">
-          <h2 id="series-heading">Daily series</h2>
-          <p>One point per day in range.</p>
-        </div>
-        <div class="chart" id="route-series"></div>
-      </section>
+        <section class="section">
+          <SummaryTiles tiles={ROUTE_TILES} interactive variant="route" />
+        </section>
 
-      <section class="section" aria-labelledby="export-heading">
-        <div class="section-head">
-          <h2 id="export-heading">Export</h2>
-          <p>CSV of this slice, or the underlying Parquet month file.</p>
-        </div>
-        <div class="actions">
-          <a class="btn primary-signal" href={`/routes/${resolved.route}/deep/`}>Open deep dive</a>
-          <a class="btn" href="/query/">Open in query</a>
-          <button type="button" class="btn secondary" data-export-csv disabled>Download CSV</button>
-          <a class="btn secondary" data-parquet-link href="/data/">Parquet</a>
-        </div>
-      </section>
-    </div>
-  </main>
+        <section class="section" aria-labelledby="series-heading">
+          <div class="section-head">
+            <h2 id="series-heading">Daily series</h2>
+            <p>One point per day in range.</p>
+          </div>
+          <div class="chart" id="route-series"></div>
+        </section>
+
+        <section class="section" aria-labelledby="export-heading">
+          <div class="section-head">
+            <h2 id="export-heading">Export</h2>
+            <p>CSV of this slice, or the underlying Parquet month file.</p>
+          </div>
+          <div class="actions">
+            <a class="btn primary-signal" href={`/routes/${resolved.route}/deep/`}>Open deep dive</a>
+            <a class="btn" href="/query/">Open in query</a>
+            <button type="button" class="btn secondary" data-export-csv disabled>Download CSV</button>
+            <a class="btn secondary" data-parquet-link href="/data/">Parquet</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <CommentaryRail label="Route commentary" />
+  </div>
 
   <script src="../../scripts/route/route-app.ts"></script>
 </BaseLayout>

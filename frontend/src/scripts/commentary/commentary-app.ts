@@ -12,7 +12,7 @@ export interface CommentaryPanel {
 }
 
 function renderPanelShell(root: HTMLElement): void {
-  root.classList.add("ai-panel", "ai-panel--lead");
+  root.classList.add("ai-rail");
   root.innerHTML = `<div class="ai-commentary" data-ai-output aria-live="polite"></div>`;
 }
 

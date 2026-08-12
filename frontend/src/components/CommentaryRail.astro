@@ -1,0 +1,9 @@
+---
+interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
+---
+
+<aside class="ai-rail" data-ai-commentary aria-label={label}></aside>
