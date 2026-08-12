@@ -47,7 +47,7 @@ No privileged mode, cgroup mounts, or `SYS_ADMIN` are required.
 
 ## Web UI
 
-The Astro SPA in [`frontend/`](frontend/) is served by a separate Caddy container. It reads the archive over HTTP at `/data/…` (DuckDB-WASM in the browser). Static HTML prototypes in [`frontend/prototypes/`](frontend/prototypes/) remain the design reference until SPA parity is signed off.
+The Astro SPA in [`frontend/`](frontend/) is served by a separate Caddy container. It reads the archive over HTTP at `/data/…` (DuckDB-WASM in the browser).
 
 With the capture appliance already running (or at least `./archive` populated):
 
@@ -58,6 +58,8 @@ open http://localhost:8080
 
 Browse files at [http://localhost:8080/data/](http://localhost:8080/data/). The archive mount uses the same host path as the appliance: `${METLAKE_ARCHIVE_HOST_PATH:-./archive}:/data:ro`.
 
+Use the header **route typeahead** to open any published route scorecard; deep dive stays linked from the scorecard.
+
 Local development without Docker:
 
 ```bash
@@ -65,8 +67,6 @@ cd frontend
 npm ci
 npm run dev
 ```
-
-View prototypes only: `cd frontend/prototypes && python3 -m http.server 5173`
 
 ## Manual scripts (no Docker)
 

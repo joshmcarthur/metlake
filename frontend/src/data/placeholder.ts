@@ -1,7 +1,5 @@
 /**
- * Structural placeholders so the scaffold renders the same shapes as
- * `frontend/prototypes/`. Every value here is replaced by DuckDB-WASM queries
- * against `/data/` in a later task — none of it is real performance data.
+ * Structural placeholders for first paint before DuckDB-WASM fills live values.
  */
 
 export interface RouteRef {
