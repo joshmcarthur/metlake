@@ -23,4 +23,5 @@ fi
 
 mkdir -p "${ARCHIVE_ROOT}/raw" "${ARCHIVE_ROOT}/curated" "${ARCHIVE_ROOT}/derived" "${ARCHIVE_ROOT}/metadata"
 
-exec supercronic -passthrough-logs /opt/metlake/crontab
+# tini is PID 1 (zombie reaping). supercronic must not also reap when not PID 1.
+exec /usr/bin/tini -g -- supercronic -no-reap -passthrough-logs /opt/metlake/crontab

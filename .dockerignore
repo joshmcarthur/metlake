@@ -1,0 +1,10 @@
+.git
+.archive
+archive
+.env
+.env.*
+!.env.example
+tests/tmp
+*.duckdb
+README.md
+docs

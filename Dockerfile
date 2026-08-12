@@ -12,6 +12,7 @@ RUN apt-get update \
     ca-certificates \
     curl \
     python3 \
+    tini \
     unzip \
   && rm -rf /var/lib/apt/lists/*
 
@@ -19,8 +20,7 @@ RUN apt-get update \
 RUN set -eux; \
   arch="${TARGETARCH:-amd64}"; \
   case "${arch}" in \
-    amd64) duck_arch=amd64 ;; \
-    arm64) duck_arch=aarch64 ;; \
+    amd64|arm64) duck_arch="${arch}" ;; \
     *) echo "unsupported arch: ${arch}" >&2; exit 1 ;; \
   esac; \
   curl -fsSL \
