@@ -6,8 +6,7 @@ COPY (
     r.route_short_name,
     r.route_long_name,
     r.route_type,
-    r.agency_id,
-    r.route_color
+    r.agency_id
   FROM read_parquet(getenv('PERFORMANCE_PARQUET_GLOB'), union_by_name = true) AS p
   LEFT JOIN read_parquet(getenv('ROUTES_PARQUET')) AS r
     ON CAST(p.route AS VARCHAR) = CAST(r.route_short_name AS VARCHAR)
