@@ -91,7 +91,7 @@ export function buildRouteBrief(
   return {
     title: `Route ${routeId} commentary`,
     scope: "route",
-    fallbackKey: "route83",
+    fallbackKey: routeId === "83" ? "route83" : "route",
     stats,
   };
 }

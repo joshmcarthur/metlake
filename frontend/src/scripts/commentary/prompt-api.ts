@@ -62,7 +62,7 @@ export async function generateCommentary(
   const availability = await getLanguageModelAvailability();
   if (availability === "unsupported" || availability === "unavailable") {
     return {
-      text: getFallbackText(brief.fallbackKey),
+      text: getFallbackText(brief),
       source: "fallback",
       availability,
     };
@@ -71,7 +71,7 @@ export async function generateCommentary(
   const LanguageModel = getLanguageModel();
   if (!LanguageModel) {
     return {
-      text: getFallbackText(brief.fallbackKey),
+      text: getFallbackText(brief),
       source: "fallback",
       availability: "unsupported",
     };
@@ -108,9 +108,10 @@ export async function generateCommentary(
       else text += chunk;
       options.onChunk?.({ type: "text", text });
     }
+    const usedFallback = !text;
     return {
-      text: text || getFallbackText(brief.fallbackKey),
-      source: "language-model",
+      text: text || getFallbackText(brief),
+      source: usedFallback ? "fallback" : "language-model",
       availability,
     };
   } finally {

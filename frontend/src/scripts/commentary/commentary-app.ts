@@ -22,6 +22,27 @@ function setStatus(el: HTMLElement | null, text: string, kind: "" | "warn" | "ok
   else delete el.dataset.kind;
 }
 
+async function syncModelStatus(status: HTMLElement | null): Promise<void> {
+  const availability = await getLanguageModelAvailability();
+  if (availability === "unsupported") {
+    setStatus(
+      status,
+      "Chrome Prompt API not detected — sample commentary still works. Needs a recent Chrome with on-device Gemini Nano.",
+      "warn",
+    );
+  } else if (availability === "unavailable") {
+    setStatus(status, "LanguageModel present but unavailable on this device.", "warn");
+  } else if (availability === "downloadable" || availability === "downloading") {
+    setStatus(
+      status,
+      `Model status: ${availability}. First run may download Gemini Nano (on-device, private).`,
+      "ok",
+    );
+  } else {
+    setStatus(status, `Model ready (${availability}). Commentary stays on your device.`, "ok");
+  }
+}
+
 function renderPanelShell(root: HTMLElement, brief: CommentaryBrief): void {
   root.innerHTML = `
     <div class="viz-head">
@@ -64,29 +85,11 @@ export function mountCommentaryPanel(root: HTMLElement, initialBrief?: Commentar
     const briefView = getBriefView();
     const runBtn = getRunBtn();
 
-    getLanguageModelAvailability().then((availability) => {
-      if (availability === "unsupported") {
-        setStatus(
-          status,
-          "Chrome Prompt API not detected — sample commentary still works. Needs a recent Chrome with on-device Gemini Nano.",
-          "warn",
-        );
-      } else if (availability === "unavailable") {
-        setStatus(status, "LanguageModel present but unavailable on this device.", "warn");
-      } else if (availability === "downloadable" || availability === "downloading") {
-        setStatus(
-          status,
-          `Model status: ${availability}. First run may download Gemini Nano (on-device, private).`,
-          "ok",
-        );
-      } else {
-        setStatus(status, `Model ready (${availability}). Commentary stays on your device.`, "ok");
-      }
-    });
+    void syncModelStatus(status);
 
     root.querySelector("[data-ai-sample]")?.addEventListener("click", () => {
       if (!brief) return;
-      if (output) output.textContent = getFallbackText(brief.fallbackKey);
+      if (output) output.textContent = getFallbackText(brief);
       setStatus(status, "Showing canned sample (no model call).", "ok");
     });
 
@@ -132,9 +135,12 @@ export function mountCommentaryPanel(root: HTMLElement, initialBrief?: Commentar
           setStatus(status, "Generated on-device from the injected stats brief.", "ok");
         }
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (error instanceof DOMException && error.name === "AbortError") {
+          void syncModelStatus(status);
+          return;
+        }
         console.error(error);
-        if (output) output.textContent = getFallbackText(brief.fallbackKey);
+        if (output) output.textContent = getFallbackText(brief);
         const message = error instanceof Error ? error.message : String(error);
         setStatus(status, `Error: ${message}. Showing sample instead.`, "warn");
       } finally {

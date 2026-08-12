@@ -1,6 +1,6 @@
 export type CommentaryScope = "network" | "route";
 
-export type FallbackKey = "network" | "route83";
+export type FallbackKey = "network" | "route" | "route83";
 
 export interface RoutePunctualityRow {
   route: string;
