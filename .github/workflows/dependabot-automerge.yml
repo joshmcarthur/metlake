@@ -6,6 +6,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  checks: read
 
 jobs:
   automerge:
@@ -19,9 +20,50 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable auto-merge for patch and minor updates
+      - name: Wait for smoke tests to pass
+        if: contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.metadata.outputs.update-type)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          echo "Waiting for CI job 'Smoke tests' on PR #${PR}"
+          for _ in $(seq 1 90); do
+            buckets="$(gh pr checks "$PR" --json name,bucket --jq '
+              [.[] | select(.name == "Smoke tests") | .bucket] | unique | .[]
+            ' 2>/dev/null || true)"
+
+            if [[ -z "${buckets}" ]]; then
+              echo "Smoke tests check not reported yet; retrying..."
+              sleep 10
+              continue
+            fi
+
+            if printf '%s\n' "${buckets}" | grep -qx 'fail'; then
+              echo "Smoke tests failed"
+              gh pr checks "$PR" || true
+              exit 1
+            fi
+            if printf '%s\n' "${buckets}" | grep -qx 'cancel'; then
+              echo "Smoke tests cancelled"
+              exit 1
+            fi
+            if printf '%s\n' "${buckets}" | grep -qx 'pass' \
+              && ! printf '%s\n' "${buckets}" | grep -Eqx 'pending|skipping'; then
+              echo "Smoke tests passed"
+              exit 0
+            fi
+
+            echo "Smoke tests still running (${buckets}); retrying..."
+            sleep 10
+          done
+          echo "Timed out waiting for Smoke tests"
+          gh pr checks "$PR" || true
+          exit 1
+
+      - name: Squash-merge patch/minor Dependabot PR
         if: contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.metadata.outputs.update-type)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: gh pr merge --squash --delete-branch "$PR_URL"
