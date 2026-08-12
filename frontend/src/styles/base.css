@@ -140,13 +140,8 @@ main {
 }
 
 .ai-panel {
-  margin-top: 1.75rem;
-  margin-bottom: 0.25rem;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 0.95rem 1rem 1.05rem;
+  margin-top: 1.15rem;
+  margin-bottom: 1.35rem;
 }
 
 .ai-panel--lead {
@@ -154,59 +149,17 @@ main {
   margin-bottom: 1.35rem;
 }
 
-.ai-status {
-  margin: 0 0 0.75rem;
-  font-size: 0.84rem;
-  color: var(--ink-muted);
-}
-
-.ai-status[data-kind="warn"] {
-  color: var(--warn);
-}
-
-.ai-status[data-kind="ok"] {
-  color: var(--live);
-}
-
-.ai-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-bottom: 0.75rem;
-}
-
-.ai-output {
-  min-height: 4.5rem;
-  padding: 0.85rem 0.9rem;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+.ai-commentary {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.55;
   white-space: pre-wrap;
-  font-size: 0.95rem;
-  line-height: 1.5;
 }
 
-.ai-output:empty::before {
-  content: "Commentary will appear here.";
-  color: var(--ink-muted);
-}
-
-.ai-brief {
-  margin: 0 0 0.75rem;
-  padding: 0.75rem 0.85rem;
-  background: #132833;
-  color: #dce8e4;
-  border-radius: var(--radius);
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  line-height: 1.45;
-  overflow-x: auto;
-  max-height: 220px;
-}
-
-.ai-brief.hidden,
-.hidden.ai-brief {
-  display: none;
+.ai-commentary:empty::before {
+  content: "";
 }
 
 @media (prefers-reduced-motion: no-preference) {
