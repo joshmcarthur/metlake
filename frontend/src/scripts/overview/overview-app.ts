@@ -1,5 +1,4 @@
 import {
-  getDataBounds,
   getLeaderboard,
   getNetworkDailySeries,
   getPeakGapByRoute,
@@ -69,7 +68,7 @@ async function refreshPeriod(state: PeriodState): Promise<void> {
     const calRoot = document.getElementById("net-calendar");
     const sparkRoot = document.getElementById("net-cancel-spark");
     const scatterRoot = document.getElementById("net-scatter");
-    if (calRoot) renderPunctualityCalendar(calRoot, daily);
+    if (calRoot) renderPunctualityCalendar(calRoot, daily, state.range);
     if (sparkRoot) renderCancellationsSparkline(sparkRoot, daily);
     if (scatterRoot) renderPeakGapScatter(scatterRoot, peakGap);
   } catch (error) {
@@ -94,17 +93,7 @@ export async function initOverviewApp(): Promise<void> {
   try {
     const manifest = await fetchRoutePerformanceManifest();
     const bounds = boundsFromManifest(manifest.months, manifest.updated_at);
-
-    const { conn } = await loadRoutePerformance(
-      { from: bounds.allFrom, to: bounds.allTo },
-      session,
-    );
-    const dataBounds = await getDataBounds(conn);
-    if (dataBounds) {
-      bounds.asOf = dataBounds.to;
-      bounds.allFrom = dataBounds.from;
-      bounds.allTo = dataBounds.to;
-    }
+    session.primeManifest(manifest);
 
     showContent();
     renderDisabledRtCharts();

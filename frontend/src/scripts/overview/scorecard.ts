@@ -20,6 +20,14 @@ function routeName(row: RouteLeaderboardRow): string {
   return row.route_long_name ?? "";
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function renderRankList(
   container: HTMLElement,
   rows: RouteLeaderboardRow[],
@@ -30,8 +38,8 @@ function renderRankList(
       <li>
         <span class="n">${rankLabel(index)}</span>
         <div>
-          <a href="/routes/${encodeURIComponent(row.route)}/">${routeLabel(row)}</a>
-          <span class="route-name">${routeName(row)}</span>
+          <a href="/routes/${encodeURIComponent(row.route)}/">${escapeHtml(routeLabel(row))}</a>
+          <span class="route-name">${escapeHtml(routeName(row))}</span>
         </div>
         <span class="metric">${formatPercent(row.punctuality)}</span>
       </li>`,

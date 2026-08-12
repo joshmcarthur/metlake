@@ -1,3 +1,4 @@
+import { formatPeriodLabel } from "../../lib/format";
 import type { DateRange } from "../../lib/types";
 
 export type PeriodKey = "day" | "yesterday" | "week" | "month" | "all";
@@ -155,7 +156,10 @@ export function bindPeriodControls(
   };
 
   function applyUi() {
-    elements.rangeMeta.textContent = formatPeriodLabel(state.range);
+    elements.rangeMeta.textContent = formatPeriodLabel(
+      state.range.from,
+      state.range.to,
+    );
     elements.fromInput.value = state.range.from;
     elements.toInput.value = state.range.to;
     elements.periodButtons.forEach((btn) => {
@@ -210,23 +214,6 @@ export function bindPeriodControls(
   applyUi();
   onChange(state);
   return () => state;
-}
-
-function formatPeriodLabel(range: DateRange): string {
-  const fmt = new Intl.DateTimeFormat("en-NZ", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "Pacific/Auckland",
-  });
-  const format = (iso: string) => {
-    const [y, m, d] = iso.split("-").map(Number);
-    return fmt.format(new Date(Date.UTC(y, m - 1, d)));
-  };
-  if (range.from === range.to) {
-    return `${format(range.from)} · NZST`;
-  }
-  return `${format(range.from)} → ${format(range.to)} · NZST`;
 }
 
 export { priorRange as getPriorRange };

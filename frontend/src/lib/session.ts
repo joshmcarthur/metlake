@@ -12,6 +12,11 @@ export class RoutePerformanceSession {
     return this.manifest;
   }
 
+  /** Avoid a second manifest fetch when the caller already loaded it. */
+  primeManifest(manifest: RoutePerformanceManifest): void {
+    this.manifest = manifest;
+  }
+
   async ensure(range: DateRange, fetchFn: typeof fetch = fetch): Promise<DuckDbConnection> {
     if (!this.manifest) {
       this.manifest = await fetchRoutePerformanceManifest(fetchFn);

@@ -1,4 +1,4 @@
-import type { NetworkDailyPoint } from "../../../lib/types";
+import type { DateRange, NetworkDailyPoint } from "../../../lib/types";
 
 function punctColor(pct: number): string {
   if (pct >= 95) return "#e8f2e3";
@@ -13,6 +13,22 @@ function parseIso(iso: string): Date {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
+function addDays(iso: string, days: number): string {
+  const date = parseIso(iso);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function daysInRange(from: string, to: string): string[] {
+  const days: string[] = [];
+  let current = from;
+  while (current <= to) {
+    days.push(current);
+    current = addDays(current, 1);
+  }
+  return days;
+}
+
 /** Monday = 0 … Sunday = 6 */
 function mondayIndex(date: Date): number {
   return (date.getUTCDay() + 6) % 7;
@@ -21,34 +37,41 @@ function mondayIndex(date: Date): number {
 export function renderPunctualityCalendar(
   root: HTMLElement,
   series: NetworkDailyPoint[],
+  range: DateRange,
 ): void {
-  if (series.length === 0) {
+  const days = daysInRange(range.from, range.to);
+  if (days.length === 0) {
     root.innerHTML = `<p class="period-meta">No daily punctuality in this period.</p>`;
     return;
   }
 
+  const byDay = new Map(series.map((point) => [point.day, point]));
   const dow = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const first = parseIso(series[0].day);
-  const startPad = mondayIndex(first);
+  const startPad = mondayIndex(parseIso(range.from));
 
   let html = dow.map((d) => `<div class="dow">${d}</div>`).join("");
   for (let i = 0; i < startPad; i++) {
     html += `<div class="cell muted"></div>`;
   }
 
-  series.forEach((point) => {
-    const date = parseIso(point.day);
+  for (const dayIso of days) {
+    const date = parseIso(dayIso);
     const dayNum = date.getUTCDate();
+    const point = byDay.get(dayIso);
     const pct =
-      point.punctuality === null ? null : point.punctuality * 100;
+      point?.punctuality === null || point?.punctuality === undefined
+        ? null
+        : point.punctuality * 100;
     const title =
       pct === null
-        ? `${point.day}: no data`
-        : `${point.day}: ${pct.toFixed(1)}% punctuality`;
-    const bg =
-      pct === null ? "var(--paper)" : punctColor(pct);
-    html += `<div class="cell" style="background:${bg}" title="${title}" tabindex="0">${dayNum}</div>`;
-  });
+        ? `${dayIso}: no data`
+        : `${dayIso}: ${pct.toFixed(1)}% punctuality`;
+    if (pct === null) {
+      html += `<div class="cell muted" title="${title}" tabindex="0">${dayNum}</div>`;
+      continue;
+    }
+    html += `<div class="cell" style="background:${punctColor(pct)}" title="${title}" tabindex="0">${dayNum}</div>`;
+  }
 
   root.className = "calendar-heat";
   root.innerHTML = html;
