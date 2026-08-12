@@ -1,0 +1,22 @@
+# Metlake schedule (UTC). One job per line; scripts are self-contained.
+# Format: standard crontab (minute hour day-of-month month day-of-week)
+
+# Capture live GTFS-RT ~every 5 minutes
+*/5 * * * * /opt/metlake/scripts/fetch-gtfs-rt.sh
+
+# Daily static GTFS + performance snapshots (staggered)
+5 1 * * * /opt/metlake/scripts/fetch-gtfs.sh
+15 1 * * * /opt/metlake/scripts/fetch-performance.sh
+
+# Hourly curated rollup of the previous hour (script default)
+10 * * * * /opt/metlake/scripts/project-gtfs-rt-hour.sh
+
+# Daily curated rollups
+30 2 * * * /opt/metlake/scripts/project-gtfs-rt-day.sh
+40 2 * * * /opt/metlake/scripts/project-gtfs.sh
+50 2 * * * /opt/metlake/scripts/project-performance-day.sh
+
+# Monthly rollups + thin derive
+20 3 1 * * /opt/metlake/scripts/project-gtfs-rt-month.sh
+30 3 1 * * /opt/metlake/scripts/project-performance-month.sh
+40 3 1 * * /opt/metlake/scripts/derive-route-performance.sh
