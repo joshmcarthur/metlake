@@ -4,7 +4,10 @@ import mvp_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?ur
 import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 
-import { parquetUrlForMonth } from "./manifest";
+import {
+  parquetHttpUrlForMonth,
+  parquetVirtualNameForMonth,
+} from "./manifest";
 import { ArchiveError } from "./types";
 
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
@@ -55,13 +58,31 @@ export async function registerRoutePerformanceMonths(
     );
   }
 
-  const urls = months.map((month) => parquetUrlForMonth(month));
-  const urlList = urls.map((url) => `'${url.replace(/'/g, "''")}'`).join(", ");
+  // DuckDB-WASM treats absolute paths like `/data/...` as local VFS globs, not
+  // HTTP. Register each month as a same-origin HTTP URL first, then query the
+  // virtual names (supports range requests via DuckDBDataProtocol.HTTP).
+  const db = await getDuckDb();
+  const virtualNames: string[] = [];
+  for (const month of months) {
+    const virtual = parquetVirtualNameForMonth(month);
+    const httpUrl = parquetHttpUrlForMonth(month);
+    await db.registerFileURL(
+      virtual,
+      httpUrl,
+      duckdb.DuckDBDataProtocol.HTTP,
+      false,
+    );
+    virtualNames.push(virtual);
+  }
+
+  const fileList = virtualNames
+    .map((name) => `'${name.replace(/'/g, "''")}'`)
+    .join(", ");
 
   await conn.query(`
     CREATE OR REPLACE VIEW ${ROUTE_PERFORMANCE_VIEW} AS
     SELECT *
-    FROM read_parquet([${urlList}], union_by_name = true);
+    FROM read_parquet([${fileList}], union_by_name = true);
   `);
 }
 

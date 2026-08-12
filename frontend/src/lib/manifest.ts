@@ -27,8 +27,19 @@ export function monthsIntersectingPeriod(
   return months.filter((month) => month >= fromMonth && month <= toMonth);
 }
 
+/** Same-origin path for `<a href>` / browser fetch (not DuckDB VFS). */
 export function parquetUrlForMonth(month: string): string {
   return `${ROUTE_PERFORMANCE_BASE}/${month}.parquet`;
+}
+
+/** Absolute HTTP(S) URL DuckDB-WASM can fetch via `registerFileURL`. */
+export function parquetHttpUrlForMonth(month: string): string {
+  return new URL(parquetUrlForMonth(month), window.location.origin).href;
+}
+
+/** Virtual filename registered into the DuckDB-WASM filesystem for a month. */
+export function parquetVirtualNameForMonth(month: string): string {
+  return `route_performance_${month}.parquet`;
 }
 
 export async function fetchRoutePerformanceManifest(

@@ -4,7 +4,9 @@ import { DEFAULT_ROUTE } from "../../lib/site";
 
 export function buildSampleSql(month: string, from: string, to: string, route = DEFAULT_ROUTE): string {
   const safeRoute = route.replace(/'/g, "''");
-  const parquetPath = parquetUrlForMonth(month);
+  // Prefer the registered `route_performance` view — DuckDB-WASM cannot
+  // `read_parquet('/data/...')` as a bare path (local VFS, not HTTP).
+  void month;
   return `SELECT
   day,
   route,
@@ -12,7 +14,7 @@ export function buildSampleSql(month: string, from: string, to: string, route = 
   punctuality,
   reliability,
   cancellations_rate
-FROM read_parquet('${parquetPath}')
+FROM route_performance
 WHERE day BETWEEN DATE '${from}' AND DATE '${to}'
   AND route = '${safeRoute}'
 ORDER BY day;`;
