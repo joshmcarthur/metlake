@@ -14,13 +14,15 @@ Thanks for contributing.
 
 Use focused, semantic commits (e.g. `feat:`, `fix:`, `docs:`, `chore:`, `test:`).
 
+Release Please uses those prefixes to draft `CHANGELOG.md` and version bumps. Prefer `feat:` / `fix:` for user-facing changes.
+
 ## Tests
 
 ```bash
 ./tests/smoke.sh
 ```
 
-Live API tests require `METLINK_API_KEY` and are skipped when unset.
+CI runs the same smoke suite on pull requests and `main`. Live API tests require `METLINK_API_KEY` and are skipped when unset.
 
 ## Code of conduct
 

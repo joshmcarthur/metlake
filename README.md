@@ -117,6 +117,21 @@ FROM read_parquet('https://data.example.nz/curated/gtfs-rt/tripupdates/daily/202
 
 Live fetch checks need `METLINK_API_KEY` and are optional.
 
+GitHub Actions runs the smoke suite on every pull request and on `main`.
+
+## Releases
+
+[Release Please](https://github.com/googleapis/release-please) opens release PRs from conventional commits and maintains `CHANGELOG.md`.
+
+When a release lands on `main`, CI builds a multi-arch image and pushes to GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/<owner>/metlake:latest
+# or a version tag, e.g. ghcr.io/<owner>/metlake:v1.2.3
+```
+
+Dependabot opens weekly PRs for GitHub Actions and Docker base-image updates. Patch and minor Dependabot PRs are auto-merged once required checks pass (enable **Allow auto-merge** in the repository settings).
+
 ## Documentation
 
 - [Implementation brief](docs/brief.md)
