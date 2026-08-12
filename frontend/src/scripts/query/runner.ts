@@ -30,25 +30,37 @@ export function renderResultTable(
   const tbody = table.querySelector("tbody");
   if (!thead || !tbody) return;
 
+  thead.replaceChildren();
+  tbody.replaceChildren();
+
   if (result.columns.length === 0) {
-    thead.innerHTML = "";
-    tbody.innerHTML = "<tr><td>No rows returned.</td></tr>";
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.textContent = "No rows returned.";
+    row.appendChild(cell);
+    tbody.appendChild(row);
     return;
   }
 
-  thead.innerHTML = `<tr>${result.columns.map((col) => `<th>${col}</th>`).join("")}</tr>`;
+  const headerRow = document.createElement("tr");
+  for (const col of result.columns) {
+    const th = document.createElement("th");
+    th.textContent = col;
+    headerRow.appendChild(th);
+  }
+  thead.appendChild(headerRow);
 
-  tbody.innerHTML = result.rows
-    .map((row) => {
-      const cells = result.columns
-        .map((col) => {
-          const value = row[col];
-          const className = isNumeric(value) ? "num" : "";
-          const text = value === null || value === undefined ? "" : String(value);
-          return `<td class="${className}">${text}</td>`;
-        })
-        .join("");
-      return `<tr>${cells}</tr>`;
-    })
-    .join("");
+  for (const row of result.rows) {
+    const tr = document.createElement("tr");
+    for (const col of result.columns) {
+      const td = document.createElement("td");
+      const value = row[col];
+      if (isNumeric(value)) {
+        td.className = "num";
+      }
+      td.textContent = value === null || value === undefined ? "" : String(value);
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
 }

@@ -6,7 +6,7 @@ import {
   RoutePerformanceSession,
 } from "../../lib/performance";
 import { fetchRoutePerformanceManifest, monthsIntersectingPeriod } from "../../lib/manifest";
-import { isArchiveError } from "../../lib/types";
+import { isArchiveError, type RouteDailyPoint } from "../../lib/types";
 import {
   bindPeriodControls,
   boundsFromManifest,
@@ -24,6 +24,9 @@ let loadToken = 0;
 let metricState: RouteMetricState = { metric: "punctuality" };
 let currentPeriod: PeriodState | null = null;
 let routeId = "";
+let cachedSeries: RouteDailyPoint[] | null = null;
+let cachedPriorSeries: RouteDailyPoint[] | null = null;
+let cachedCompare = false;
 
 function showEmpty(message: string): void {
   const empty = document.getElementById("route-empty");
@@ -40,6 +43,22 @@ function showContent(): void {
   document.getElementById("route-loading")?.setAttribute("hidden", "");
   document.getElementById("route-empty")?.setAttribute("hidden", "");
   document.getElementById("route-content")?.removeAttribute("hidden");
+}
+
+function rerenderSeriesForMetric(): void {
+  if (!cachedSeries) return;
+
+  const seriesRoot = document.getElementById("route-series");
+  if (!seriesRoot) return;
+
+  renderRouteSeries(
+    seriesRoot,
+    cachedSeries,
+    cachedPriorSeries,
+    metricState.metric,
+    `Route ${routeId}`,
+    cachedCompare,
+  );
 }
 
 async function refreshRoute(state: PeriodState): Promise<void> {
@@ -71,17 +90,10 @@ async function refreshRoute(state: PeriodState): Promise<void> {
 
     renderRouteScorecard(summary, prior, state.key, state.compare);
 
-    const seriesRoot = document.getElementById("route-series");
-    if (seriesRoot) {
-      renderRouteSeries(
-        seriesRoot,
-        series,
-        priorSeries,
-        metricState.metric,
-        `Route ${routeId}`,
-        state.compare,
-      );
-    }
+    cachedSeries = series;
+    cachedPriorSeries = priorSeries;
+    cachedCompare = state.compare;
+    rerenderSeriesForMetric();
   } catch (error) {
     if (token !== loadToken) return;
     const message =
@@ -129,7 +141,7 @@ export async function initRouteApp(): Promise<void> {
 
     bindMetricChips(root, (metric) => {
       metricState = metric;
-      if (currentPeriod) void refreshRoute(currentPeriod);
+      rerenderSeriesForMetric();
     });
 
     bindPeriodControls(periodEls, bounds, (state) => {

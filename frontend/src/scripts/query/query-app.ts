@@ -49,7 +49,6 @@ export async function initQueryApp(): Promise<void> {
 
     runButton.disabled = false;
     resetButton?.removeAttribute("disabled");
-    csvButton?.removeAttribute("disabled");
 
     if (csvButton) {
       bindCsvDownload(csvButton, () => lastResult);
@@ -62,9 +61,11 @@ export async function initQueryApp(): Promise<void> {
         const conn = await session!.ensureAllMonths();
         lastResult = await runUserQuery(conn, textarea.value);
         renderResultTable(table, lastResult);
+        csvButton?.removeAttribute("disabled");
         showStatus(`${lastResult.rows.length.toLocaleString("en-NZ")} row(s) returned.`);
       } catch (error) {
         lastResult = null;
+        csvButton?.setAttribute("disabled", "");
         renderResultTable(table, { columns: [], rows: [] });
         const message =
           isArchiveError(error) || error instanceof Error
