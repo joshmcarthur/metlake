@@ -36,7 +36,13 @@ Metlink publishes aggregated bus performance CSVs on:
 
 https://www.metlink.org.nz/about-us/performance-of-our-network
 
-Use the **Bus performance, Daily, CSV** asset. The exact asset URL may change; set `METLINK_PERFORMANCE_CSV_URL` or discover it at fetch time from the page. Metlake stores a daily snapshot of whatever file is retrieved — it does not merge rows with GTFS.
+`scripts/fetch-performance.sh` discovers the **daily bus performance** `.csv` asset URL from page content (look for `metlink-daily-bus-performance-*.csv` under `/assets/.../Performance-Metrics/`). Override with `METLINK_PERFORMANCE_CSV_URL` when needed.
+
+Example asset (date suffix changes when Metlink republishes):
+
+`https://www.metlink.org.nz/assets/Policies-and-reports/Performance-of-our-network/Performance-Metrics/metlink-daily-bus-performance-to-2026-03-29.csv`
+
+Metlake stores a daily snapshot of the retrieved file — it does not merge rows with GTFS.
 
 ## Licence
 

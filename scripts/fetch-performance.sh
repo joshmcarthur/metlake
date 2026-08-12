@@ -37,29 +37,24 @@ resolve_performance_csv_url() {
     die "failed to download performance page ${page}"
   }
 
-  # Prefer links whose text/href mention Daily + csv (case-insensitive).
   url="$(
     python3 - "${html}" <<'PY'
 import re, sys
 html = open(sys.argv[1], encoding="utf-8", errors="replace").read()
-# Collect hrefs
-hrefs = re.findall(r'href=["\']([^"\']+)["\']', html, flags=re.I)
-candidates = []
-for h in hrefs:
-    low = h.lower()
-    if "csv" not in low:
-        continue
-    if "daily" in low or "performance" in low:
-        candidates.append(h)
-# Prefer daily explicitly
-daily = [h for h in candidates if "daily" in h.lower()]
-pick = daily[0] if daily else (candidates[0] if candidates else "")
+# Absolute asset URLs appear in page content (not always as href).
+urls = re.findall(
+    r'https://www\.metlink\.org\.nz/assets/[^"\'\s<>]+?\.csv',
+    html,
+    flags=re.I,
+)
+daily = [u for u in urls if "daily" in u.lower() and "bus-performance" in u.lower()]
+pick = daily[0] if daily else ""
+if not pick:
+    # Fallback: any daily *.csv under Performance-Metrics
+    daily2 = [u for u in urls if "daily" in u.lower()]
+    pick = daily2[0] if daily2 else ""
 if not pick:
     sys.exit(2)
-if pick.startswith("//"):
-    pick = "https:" + pick
-elif pick.startswith("/"):
-    pick = "https://www.metlink.org.nz" + pick
 print(pick)
 PY
   )" || {
@@ -86,6 +81,12 @@ fi
 if [[ ! -s "${tmp}" ]]; then
   rm -f "${tmp}"
   die "performance CSV empty"
+fi
+
+# Reject HTML mistaken for CSV
+if head -c 64 "${tmp}" | grep -qi '<!DOCTYPE\|<html'; then
+  rm -f "${tmp}"
+  die "performance download looks like HTML, not CSV (check METLINK_PERFORMANCE_CSV_URL)"
 fi
 
 sha="$(sha256_file "${tmp}")"
