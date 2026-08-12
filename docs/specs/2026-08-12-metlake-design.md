@@ -37,7 +37,7 @@ DuckDB `read_*` → SQL → `COPY … TO … FORMAT PARQUET` via temp file + ren
 
 ## Scheduling
 
-Container `CMD` is supercronic reading `/opt/metlake/crontab`. No systemd, no privileged cgroup mounts.
+Container entrypoint validates env, then runs **tini** as PID 1 with **supercronic** (`-no-reap -passthrough-logs`) reading `/opt/metlake/crontab`. No systemd and no privileged cgroup mounts.
 
 ## Secrets
 
