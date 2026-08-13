@@ -16,8 +16,17 @@ function formatDelayAdded(seconds: number): string {
   return "0s";
 }
 
+export function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function stopLabel(name: string | null): string {
-  return name?.trim() ? name : "Unknown stop";
+  return name?.trim() ? escapeHtml(name) : "Unknown stop";
 }
 
 export function renderChokePoints(root: HTMLElement, rows: ChokePointRow[]): void {

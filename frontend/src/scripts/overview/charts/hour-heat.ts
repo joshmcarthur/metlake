@@ -37,12 +37,6 @@ export function renderNetworkHourHeat(
     bySlot.set(`${cell.weekday}-${cell.hour}`, cell.delay_seconds);
   }
 
-  if (bySlot.size === 0) {
-    root.className = "heatmap chart-slot-disabled";
-    root.innerHTML = EMPTY_NOTE;
-    return;
-  }
-
   const hourHeaders = Array.from({ length: 24 }, (_, hour) => {
     return `<th>${hourLabel(hour)}</th>`;
   }).join("");
@@ -66,5 +60,5 @@ export function renderNetworkHourHeat(
   }
 
   root.className = "heatmap";
-  root.innerHTML = `<table><thead><tr><th class="row-label"></th>${hourHeaders}</tr></thead><tbody>${body}</tbody></table>`;
+  root.innerHTML = `<table class="heatmap"><thead><tr><th class="row-label"></th>${hourHeaders}</tr></thead><tbody>${body}</tbody></table>`;
 }
