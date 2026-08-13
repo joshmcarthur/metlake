@@ -169,6 +169,11 @@
   color: var(--ink);
 }
 
+.heatmap td.muted {
+  background: var(--paper);
+  border: 1px dashed var(--line);
+}
+
 .heatmap-legend {
   display: flex;
   align-items: center;

@@ -24,12 +24,8 @@ function isOrderedList(root: HTMLElement): boolean {
 }
 
 export function renderInjectors(root: HTMLElement, rows: RouteInjectorRow[]): void {
-  const emptyClass = isOrderedList(root)
-    ? "injector-list chart-slot-disabled"
-    : "chart-slot-disabled";
-
   if (rows.length === 0) {
-    renderAnatomyEmptyState(root, emptyClass);
+    renderAnatomyEmptyState(root, "chart-slot-disabled");
     return;
   }
 
