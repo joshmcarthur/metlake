@@ -111,14 +111,28 @@ COPY (
       json_extract_string(ent, '$.trip_update.trip.trip_id') AS trip_id,
       json_extract_string(ent, '$.trip_update.trip.route_id') AS rt_route_id,
       json_extract_string(ent, '$.trip_update.trip.start_time') AS rt_start_time,
-      json_extract(ent, '$.trip_update.trip.schedule_relationship') AS sr,
+      json_extract_string(ent, '$.trip_update.trip.schedule_relationship') AS sr,
       feed_timestamp,
+      u.stu_idx,
       COALESCE(
         TRY_CAST(json_extract_string(stu, '$.arrival.delay') AS INTEGER),
         TRY_CAST(json_extract_string(stu, '$.departure.delay') AS INTEGER)
       ) AS delay_seconds
     FROM with_stus,
     UNNEST(stus) WITH ORDINALITY AS u(stu, stu_idx)
+    WHERE len(stus) > 0
+    UNION ALL
+    SELECT
+      CAST(left(capture_hour, 10) AS DATE) AS day,
+      json_extract_string(ent, '$.trip_update.trip.trip_id') AS trip_id,
+      json_extract_string(ent, '$.trip_update.trip.route_id') AS rt_route_id,
+      json_extract_string(ent, '$.trip_update.trip.start_time') AS rt_start_time,
+      json_extract_string(ent, '$.trip_update.trip.schedule_relationship') AS sr,
+      feed_timestamp,
+      CAST(NULL AS BIGINT) AS stu_idx,
+      CAST(NULL AS INTEGER) AS delay_seconds
+    FROM with_stus
+    WHERE len(stus) = 0
   ),
   rt_trip AS (
     SELECT
@@ -129,7 +143,8 @@ COPY (
       BOOL_OR(
         upper(CAST(sr AS VARCHAR)) IN ('3', 'CANCELED', 'CANCELLED')
       ) AS cancelled,
-      arg_max(delay_seconds, feed_timestamp) AS delay_seconds
+      arg_max(delay_seconds, (feed_timestamp, stu_idx))
+        FILTER (WHERE delay_seconds IS NOT NULL) AS delay_seconds
     FROM rt_obs
     WHERE trip_id IS NOT NULL
       AND day >= (SELECT start FROM month_start)

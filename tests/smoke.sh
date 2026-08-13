@@ -90,6 +90,9 @@ tp_rows="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/de
 test "${tp_rows}" -ge 1
 tp_t1="$(duckdb -csv -c "SELECT scheduled, observed FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't1';" | tail -n 1)"
 test "${tp_t1}" = "true,true"
+# Latest STU delay wins on a tied feed_timestamp; later CANCELED with no STUs still counts.
+tp_t1_census="$(duckdb -csv -c "SELECT cancelled, delay_seconds FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't1';" | tail -n 1)"
+test "${tp_t1_census}" = "true,180"
 
 echo "== derive rt-route-performance =="
 MONTH=2026-08 "${ROOT}/scripts/derive-rt-route-performance.sh"
@@ -99,6 +102,16 @@ rt_sched="$(duckdb -csv -c "SELECT SUM(scheduled_trips) FROM read_parquet('${ARC
 test "${rt_sched}" -ge 1
 rt_source="$(duckdb -csv -c "SELECT DISTINCT source FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet');" | tail -n 1)"
 test "${rt_source}" = "gtfs_rt"
+rt_cancels="$(duckdb -csv -c "SELECT SUM(cancellations) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet');" | tail -n 1)"
+test "${rt_cancels}" -ge 1
+rt_pat_cols="$(duckdb -csv -c "SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet')) WHERE lower(column_name) IN ('patronage', 'seated_capacity', 'license_capacity', 'licence_capacity');" | tail -n +2)"
+if [[ -n "${rt_pat_cols}" ]]; then
+  while IFS= read -r col; do
+    [[ -z "${col}" ]] && continue
+    nonzero="$(duckdb -csv -c "SELECT COUNT(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') WHERE \"${col}\" IS NOT NULL;" | tail -n 1)"
+    test "${nonzero}" -eq 0
+  done <<< "${rt_pat_cols}"
+fi
 
 echo "== status =="
 "${ROOT}/scripts/status.sh" >/dev/null
