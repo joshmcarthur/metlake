@@ -113,6 +113,16 @@ if [[ -n "${rt_pat_cols}" ]]; then
   done <<< "${rt_pat_cols}"
 fi
 
+echo "== derive stop-delay =="
+MONTH=2026-08 "${ROOT}/scripts/derive-stop-delay.sh"
+test -f "${ARCHIVE_ROOT}/derived/stop-delay/2026-08.parquet"
+test -f "${ARCHIVE_ROOT}/derived/stop-delay/_manifest.json"
+grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/stop-delay/_manifest.json"
+sd_rows="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/stop-delay/2026-08.parquet');" | tail -n 1)"
+test "${sd_rows}" -ge 2
+sd_t1="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/stop-delay/2026-08.parquet') WHERE trip_id = 't1';" | tail -n 1)"
+test "${sd_t1}" -eq 2
+
 echo "== status =="
 "${ROOT}/scripts/status.sh" >/dev/null
 
