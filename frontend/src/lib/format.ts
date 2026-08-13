@@ -5,17 +5,37 @@ const NZ_DATE = new Intl.DateTimeFormat("en-NZ", {
   timeZone: "Pacific/Auckland",
 });
 
-/** Format an ISO date for period labels (e.g. "1 Aug 2026"). */
-export function formatNzDate(iso: string): string {
+const NZ_DAY_MONTH = new Intl.DateTimeFormat("en-NZ", {
+  day: "numeric",
+  month: "short",
+  timeZone: "Pacific/Auckland",
+});
+
+function utcDateFromIso(iso: string): Date {
   const [year, month, day] = iso.split("-").map(Number);
-  return NZ_DATE.format(new Date(Date.UTC(year, month - 1, day)));
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
-export function formatPeriodLabel(from: string, to: string): string {
+/** Format an ISO date for period labels (e.g. "1 Aug 2026"). */
+export function formatNzDate(iso: string): string {
+  return NZ_DATE.format(utcDateFromIso(iso));
+}
+
+/** Short axis label (e.g. "1 Aug"). */
+export function formatNzDayMonth(iso: string): string {
+  return NZ_DAY_MONTH.format(utcDateFromIso(iso));
+}
+
+export function formatPeriodLabel(
+  from: string,
+  to: string,
+  estimated = false,
+): string {
+  const estimateSuffix = estimated ? " · some days estimated from live feed" : "";
   if (from === to) {
-    return `${formatNzDate(from)} · NZST`;
+    return `${formatNzDate(from)} · NZST${estimateSuffix}`;
   }
-  return `${formatNzDate(from)} → ${formatNzDate(to)} · NZST`;
+  return `${formatNzDate(from)} → ${formatNzDate(to)} · NZST${estimateSuffix}`;
 }
 
 /** Stored metrics are 0–1 fractions; display as percent. */
@@ -33,6 +53,16 @@ export function formatCount(value: number | null): string {
 export function formatMinutes(value: number | null, digits = 1): string {
   if (value === null || !Number.isFinite(value)) return "—";
   return `${value.toFixed(digits)}m`;
+}
+
+/** Last-stop delay is stored in seconds; display as minutes. */
+export function formatDelayMinutes(seconds: number | null): string {
+  if (seconds === null || !Number.isFinite(seconds)) return "—";
+  const minutes = seconds / 60;
+  if (minutes < 10 && Math.abs(minutes - Math.round(minutes)) >= 0.05) {
+    return `${minutes.toFixed(1)} min`;
+  }
+  return `${Math.round(minutes)} min`;
 }
 
 export function formatMinutesDelta(

@@ -1,5 +1,7 @@
 /** Archive files are served by Caddy from the mounted archive. */
 export const ROUTE_PERFORMANCE_BASE = "/data/derived/route-performance";
+export const LATE_TRIPS_BASE = "/data/derived/late-trips";
+export const RT_ROUTE_PERFORMANCE_BASE = "/data/derived/rt-route-performance";
 
 export interface RoutePerformanceManifest {
   months: string[];
@@ -55,15 +57,14 @@ export interface RouteCatalogEntry {
   route: string;
   route_short_name: string | null;
   route_long_name: string | null;
+  route_type: number | null;
 }
 
-export interface RoutePeakGapRow {
-  route: string;
-  route_short_name: string | null;
-  route_long_name: string | null;
-  punctuality: number | null;
-  peak_punctuality: number | null;
-  peak_gap_pp: number | null;
+export interface DelayRange {
+  least_seconds: number | null;
+  typical_seconds: number | null;
+  most_seconds: number | null;
+  late_trips: number;
 }
 
 export type ArchiveErrorKind = "archive-empty" | "manifest-not-found" | "manifest-invalid";
