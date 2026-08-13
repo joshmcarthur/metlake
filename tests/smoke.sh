@@ -110,7 +110,7 @@ if [[ -n "${rt_pat_cols}" ]]; then
     [[ -z "${col}" ]] && continue
     nonzero="$(duckdb -csv -c "SELECT COUNT(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') WHERE \"${col}\" IS NOT NULL;" | tail -n 1)"
     test "${nonzero}" -eq 0
-  done <<< "${rt_pat_cols}"
+  done <<<"${rt_pat_cols}"
 fi
 
 echo "== derive stop-delay =="
@@ -122,6 +122,19 @@ sd_rows="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/de
 test "${sd_rows}" -ge 2
 sd_t1="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/stop-delay/2026-08.parquet') WHERE trip_id = 't1';" | tail -n 1)"
 test "${sd_t1}" -eq 2
+
+echo "== derive stop-anatomy =="
+MONTH=2026-08 "${ROOT}/scripts/derive-stop-anatomy.sh"
+test -f "${ARCHIVE_ROOT}/derived/stop-profile/2026-08.parquet"
+test -f "${ARCHIVE_ROOT}/derived/delay-injectors/2026-08.parquet"
+test -f "${ARCHIVE_ROOT}/derived/hour-heat/2026-08.parquet"
+grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/delay-injectors/_manifest.json"
+inj_n="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/delay-injectors/2026-08.parquet');" | tail -n 1)"
+test "${inj_n}" -ge 1
+inj_pair="$(duckdb -csv -c "SELECT from_stop_id || '>' || to_stop_id FROM read_parquet('${ARCHIVE_ROOT}/derived/delay-injectors/2026-08.parquet') WHERE from_stop_id = '10';" | tail -n 1)"
+test "${inj_pair}" = "10>20"
+hh_ok="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/hour-heat/2026-08.parquet') WHERE hour BETWEEN 0 AND 23;" | tail -n 1)"
+test "${hh_ok}" -ge 1
 
 echo "== status =="
 "${ROOT}/scripts/status.sh" >/dev/null

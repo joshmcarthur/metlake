@@ -17,7 +17,9 @@
 45 2 * * * /opt/metlake/scripts/derive-late-trips.sh
 47 2 * * * /opt/metlake/scripts/derive-trip-performance.sh
 48 2 * * * /opt/metlake/scripts/derive-rt-route-performance.sh
+49 2 * * * /opt/metlake/scripts/derive-stop-delay.sh
 50 2 * * * /opt/metlake/scripts/project-performance-day.sh
+51 2 * * * /opt/metlake/scripts/derive-stop-anatomy.sh
 
 # Monthly rollups + thin derive
 20 3 1 * * /opt/metlake/scripts/project-gtfs-rt-month.sh
