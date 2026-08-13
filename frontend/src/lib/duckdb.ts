@@ -5,12 +5,18 @@ import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 
 import {
+  delayInjectorsParquetHttpUrlForMonth,
+  delayInjectorsVirtualNameForMonth,
+  hourHeatParquetHttpUrlForMonth,
+  hourHeatVirtualNameForMonth,
   lateTripsParquetHttpUrlForMonth,
   lateTripsVirtualNameForMonth,
   parquetHttpUrlForMonth,
   parquetVirtualNameForMonth,
   rtParquetHttpUrlForMonth,
   rtParquetVirtualNameForMonth,
+  stopProfileParquetHttpUrlForMonth,
+  stopProfileVirtualNameForMonth,
 } from "./manifest";
 import { splicedRoutePerformanceSql } from "./splice";
 import { ArchiveError, EMPTY_ROUTE_PERFORMANCE_MESSAGE } from "./types";
@@ -24,6 +30,9 @@ export const ROUTE_PERFORMANCE_VIEW = "route_performance";
 export const PUBLISHED_ROUTE_PERFORMANCE_VIEW = "route_performance_published";
 export const RT_ROUTE_PERFORMANCE_VIEW = "route_performance_rt";
 export const LATE_TRIPS_VIEW = "late_trips";
+export const STOP_PROFILE_VIEW = "stop_profile";
+export const DELAY_INJECTORS_VIEW = "delay_injectors";
+export const HOUR_HEAT_VIEW = "hour_heat";
 
 export type DuckDbConnection = duckdb.AsyncDuckDBConnection;
 
@@ -149,6 +158,48 @@ export async function registerLateTripsMonths(
     lateTripsVirtualNameForMonth,
     lateTripsParquetHttpUrlForMonth,
     "No late-trips parquet files intersect the selected period.",
+  );
+}
+
+export async function registerStopProfileMonths(
+  conn: DuckDbConnection,
+  months: readonly string[],
+): Promise<void> {
+  await registerParquetView(
+    conn,
+    STOP_PROFILE_VIEW,
+    months,
+    stopProfileVirtualNameForMonth,
+    stopProfileParquetHttpUrlForMonth,
+    "No stop-profile parquet files intersect the selected period.",
+  );
+}
+
+export async function registerDelayInjectorsMonths(
+  conn: DuckDbConnection,
+  months: readonly string[],
+): Promise<void> {
+  await registerParquetView(
+    conn,
+    DELAY_INJECTORS_VIEW,
+    months,
+    delayInjectorsVirtualNameForMonth,
+    delayInjectorsParquetHttpUrlForMonth,
+    "No delay-injectors parquet files intersect the selected period.",
+  );
+}
+
+export async function registerHourHeatMonths(
+  conn: DuckDbConnection,
+  months: readonly string[],
+): Promise<void> {
+  await registerParquetView(
+    conn,
+    HOUR_HEAT_VIEW,
+    months,
+    hourHeatVirtualNameForMonth,
+    hourHeatParquetHttpUrlForMonth,
+    "No hour-heat parquet files intersect the selected period.",
   );
 }
 

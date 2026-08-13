@@ -1,15 +1,21 @@
 import {
   ArchiveError,
+  DELAY_INJECTORS_BASE,
   EMPTY_ROUTE_PERFORMANCE_MESSAGE,
+  HOUR_HEAT_BASE,
   LATE_TRIPS_BASE,
   ROUTE_PERFORMANCE_BASE,
   RT_ROUTE_PERFORMANCE_BASE,
+  STOP_PROFILE_BASE,
   type RoutePerformanceManifest,
 } from "./types.ts";
 
 const PERFORMANCE_MANIFEST_URL = `${ROUTE_PERFORMANCE_BASE}/_manifest.json`;
 const LATE_TRIPS_MANIFEST_URL = `${LATE_TRIPS_BASE}/_manifest.json`;
 const RT_ROUTE_PERFORMANCE_MANIFEST_URL = `${RT_ROUTE_PERFORMANCE_BASE}/_manifest.json`;
+const STOP_PROFILE_MANIFEST_URL = `${STOP_PROFILE_BASE}/_manifest.json`;
+const DELAY_INJECTORS_MANIFEST_URL = `${DELAY_INJECTORS_BASE}/_manifest.json`;
+const HOUR_HEAT_MANIFEST_URL = `${HOUR_HEAT_BASE}/_manifest.json`;
 
 function isManifest(value: unknown): value is RoutePerformanceManifest {
   if (!value || typeof value !== "object") return false;
@@ -85,6 +91,42 @@ export function rtParquetHttpUrlForMonth(month: string): string {
 
 export function rtParquetVirtualNameForMonth(month: string): string {
   return `rt_route_performance_${month}.parquet`;
+}
+
+export function stopProfileParquetUrlForMonth(month: string): string {
+  return `${STOP_PROFILE_BASE}/${month}.parquet`;
+}
+
+export function stopProfileParquetHttpUrlForMonth(month: string): string {
+  return new URL(stopProfileParquetUrlForMonth(month), window.location.origin).href;
+}
+
+export function stopProfileVirtualNameForMonth(month: string): string {
+  return `stop_profile_${month}.parquet`;
+}
+
+export function delayInjectorsParquetUrlForMonth(month: string): string {
+  return `${DELAY_INJECTORS_BASE}/${month}.parquet`;
+}
+
+export function delayInjectorsParquetHttpUrlForMonth(month: string): string {
+  return new URL(delayInjectorsParquetUrlForMonth(month), window.location.origin).href;
+}
+
+export function delayInjectorsVirtualNameForMonth(month: string): string {
+  return `delay_injectors_${month}.parquet`;
+}
+
+export function hourHeatParquetUrlForMonth(month: string): string {
+  return `${HOUR_HEAT_BASE}/${month}.parquet`;
+}
+
+export function hourHeatParquetHttpUrlForMonth(month: string): string {
+  return new URL(hourHeatParquetUrlForMonth(month), window.location.origin).href;
+}
+
+export function hourHeatVirtualNameForMonth(month: string): string {
+  return `hour_heat_${month}.parquet`;
 }
 
 async function fetchMonthManifest(
@@ -203,4 +245,29 @@ export async function fetchRtRoutePerformanceManifest(
     "rt-route-performance",
     fetchFn,
   );
+}
+
+/** Missing stop-profile derives are optional — return null instead of failing the page. */
+export async function fetchStopProfileManifest(
+  fetchFn: typeof fetch = fetch,
+): Promise<RoutePerformanceManifest | null> {
+  return fetchOptionalMonthManifest(STOP_PROFILE_MANIFEST_URL, "stop-profile", fetchFn);
+}
+
+/** Missing delay-injectors derives are optional — return null instead of failing the page. */
+export async function fetchDelayInjectorsManifest(
+  fetchFn: typeof fetch = fetch,
+): Promise<RoutePerformanceManifest | null> {
+  return fetchOptionalMonthManifest(
+    DELAY_INJECTORS_MANIFEST_URL,
+    "delay-injectors",
+    fetchFn,
+  );
+}
+
+/** Missing hour-heat derives are optional — return null instead of failing the page. */
+export async function fetchHourHeatManifest(
+  fetchFn: typeof fetch = fetch,
+): Promise<RoutePerformanceManifest | null> {
+  return fetchOptionalMonthManifest(HOUR_HEAT_MANIFEST_URL, "hour-heat", fetchFn);
 }

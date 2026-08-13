@@ -2,6 +2,9 @@
 export const ROUTE_PERFORMANCE_BASE = "/data/derived/route-performance";
 export const LATE_TRIPS_BASE = "/data/derived/late-trips";
 export const RT_ROUTE_PERFORMANCE_BASE = "/data/derived/rt-route-performance";
+export const STOP_PROFILE_BASE = "/data/derived/stop-profile";
+export const DELAY_INJECTORS_BASE = "/data/derived/delay-injectors";
+export const HOUR_HEAT_BASE = "/data/derived/hour-heat";
 
 export interface RoutePerformanceManifest {
   months: string[];
