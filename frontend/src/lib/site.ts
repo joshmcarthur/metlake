@@ -1,11 +1,27 @@
 /** Route shown as a fallback sample in Query SQL when none is selected yet. */
 export const DEFAULT_ROUTE = "83";
 
+/** Query page URL, optionally scoped to a route for the sample SQL. */
+export function queryPageHref(route?: string): string {
+  const trimmed = route?.trim() ?? "";
+  if (!trimmed || trimmed === "__any__") {
+    return "/query/";
+  }
+  return `/query/?route=${encodeURIComponent(trimmed)}`;
+}
+
+/** Route code from `/query/?route=…`, if present. */
+export function routeFromQuerySearch(search: string): string | undefined {
+  const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+  const route = params.get("route")?.trim();
+  return route || undefined;
+}
+
 /** Archive files are served by Caddy from the mounted archive, outside the Astro build. */
 export const DATA_ROOT = "/data/";
 
 export const BRAND_TAGLINE =
-  "Historical Metlink performance you can explore, compare, and download.";
+  "Open-source data lake of historical Metlink performance data you can explore, compare and download.";
 
 export type NavKey = "overview" | "route" | "query";
 
@@ -15,7 +31,7 @@ export interface NavItem {
   href: string;
 }
 
-/** Primary text links only — Route uses an inline picker in the header. */
+/** Primary text links only — Route uses a dialog opened from the header. */
 export const NAV_ITEMS: NavItem[] = [
   { key: "overview", label: "Overview", href: "/" },
   { key: "query", label: "Query", href: "/query/" },

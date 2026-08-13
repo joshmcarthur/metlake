@@ -19,7 +19,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   showSiblingNote
   attribution="network"
 >
-  <div class="page-with-rail" id="overview-root">
+  <div class="wrap page-with-rail" id="overview-root">
     <main class="page-main">
       <div class="archive-empty" id="overview-loading" role="status">
         <p class="eyebrow">Archive</p>
@@ -73,18 +73,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <article class="viz-panel" aria-labelledby="cancel-heading">
             <div class="viz-head">
               <h2 id="cancel-heading">Cancellations</h2>
-              <p>Spike days vs steady noise</p>
+              <p>Share of scheduled trips cancelled each day</p>
             </div>
-            <ChartSlot id="net-cancel-spark" label="Cancellation sparkline" bare />
+            <ChartSlot id="net-cancel-spark" label="Cancellation chart" bare />
           </article>
         </section>
 
-        <section class="section viz-panel" aria-labelledby="scatter-heading">
+        <section class="section viz-panel" aria-labelledby="delay-range-heading">
           <div class="viz-head">
-            <h2 id="scatter-heading">Peak pain vs all-day score</h2>
-            <p>Each point is a route · higher = peak much worse than all-day</p>
+            <h2 id="delay-range-heading">When trips ran late</h2>
+            <p>Last-stop arrival, trips at least 1 minute late</p>
           </div>
-          <ChartSlot id="net-scatter" label="Route scatter" bare />
+          <ChartSlot id="net-delay-range" label="Delay range" bare />
         </section>
 
         <section class="section viz-panel" aria-labelledby="hour-heading">
@@ -102,11 +102,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             <p>Segments that inject delay across multiple routes</p>
           </div>
           <ChartSlot id="net-corridors" label="Corridor table" bare />
-          <div class="actions" style="margin-top: 0.85rem">
-            <a class="btn primary-signal" data-deep-link href="/routes/83/deep/">
-              Open deep dive
-            </a>
-          </div>
         </section>
       </div>
     </main>
@@ -115,10 +110,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </div>
 
   <script src="../scripts/overview/overview-app.ts"></script>
-  <script>
-    import { wireDeepDiveLinks } from "../scripts/nav/route-picker";
-    wireDeepDiveLinks();
-  </script>
 </BaseLayout>
 
 <style>

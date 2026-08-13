@@ -11,10 +11,7 @@ const { current } = Astro.props;
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="/">
-      <div class="brand-row">
-        <span class="brand-mark">Met<span>lake</span></span>
-        <span class="brand-pill">history</span>
-      </div>
+      <span class="brand-mark">Met<span>lake</span></span>
       <p class="brand-tag">{BRAND_TAGLINE}</p>
     </a>
     <nav class="nav" aria-label="Primary">
@@ -24,28 +21,41 @@ const { current } = Astro.props;
         data-route-picker
         data-current={current === "route" ? "page" : undefined}
       >
-        <label class="visually-hidden" for="nav-route-input">Select route</label>
-        <input
-          id="nav-route-input"
-          class="nav-route-input"
-          type="search"
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded="false"
-          aria-controls="nav-route-list"
-          aria-haspopup="listbox"
-          data-route-input
-          placeholder="Select a route…"
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <ul
-          id="nav-route-list"
-          class="nav-route-list"
-          role="listbox"
-          data-route-list
-          hidden
-        ></ul>
+        <button
+          type="button"
+          class="nav-route-btn"
+          data-route-open
+          aria-haspopup="dialog"
+          aria-controls="route-picker-dialog"
+        >
+          Select a route
+        </button>
+        <dialog
+          id="route-picker-dialog"
+          class="route-dialog"
+          data-route-dialog
+          aria-labelledby="route-picker-title"
+        >
+          <div class="route-dialog-panel">
+            <div class="route-dialog-head">
+              <h2 id="route-picker-title">Select a route</h2>
+              <button type="button" class="route-dialog-close" data-route-close aria-label="Close">
+                Close
+              </button>
+            </div>
+            <label class="visually-hidden" for="route-picker-search">Search routes</label>
+            <input
+              id="route-picker-search"
+              class="route-dialog-search"
+              type="search"
+              data-route-search
+              placeholder="Search by code or name"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <div class="route-dialog-catalog" data-route-catalog></div>
+          </div>
+        </dialog>
       </div>
       <a href="/query/" aria-current={current === "query" ? "page" : undefined}>Query</a>
       <a class="external" href={DATA_ROOT}>/data/</a>

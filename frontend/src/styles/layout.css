@@ -74,12 +74,6 @@
   gap: 0.15rem;
 }
 
-.brand-row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.55rem;
-}
-
 .brand-mark {
   font-size: 1.55rem;
   font-weight: 700;
@@ -91,24 +85,11 @@
   color: var(--signal);
 }
 
-.brand-pill {
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--signal-ink);
-  background: color-mix(in srgb, var(--signal) 28%, white);
-  border: 1px solid color-mix(in srgb, var(--signal) 45%, white);
-  border-radius: 999px;
-  padding: 0.15rem 0.45rem;
-}
-
 .brand-tag {
   margin: 0;
   color: var(--ink-muted);
   font-size: 0.88rem;
-  max-width: 40ch;
+  max-width: 56ch;
 }
 
 .nav {
@@ -145,71 +126,182 @@
 }
 
 .nav-route {
-  position: relative;
   display: flex;
   align-items: center;
 }
 
-.nav-route-input {
-  width: min(16rem, 42vw);
+.nav-route-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font: inherit;
   font-size: 0.88rem;
   font-weight: 500;
   color: var(--ink);
-  background: var(--paper);
-  border: 1px solid var(--line-strong);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius);
   padding: 0.4rem 0.7rem;
+  cursor: pointer;
 }
 
-.nav-route[data-current="page"] .nav-route-input {
+.nav-route-btn:hover {
+  background: var(--paper);
+}
+
+.nav-route[data-current="page"] .nav-route-btn {
   background: var(--ink);
   color: white;
-  border-color: var(--ink);
 }
 
-.nav-route[data-current="page"] .nav-route-input::placeholder {
-  color: rgb(255 255 255 / 70%);
-}
-
-.nav-route-input:focus {
+.nav-route-btn:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--transit) 55%, white);
   outline-offset: 1px;
 }
 
-.nav-route-list {
-  position: absolute;
-  top: calc(100% + 0.25rem);
-  left: 0;
-  z-index: 20;
-  margin: 0;
-  padding: 0.25rem;
-  list-style: none;
-  min-width: 100%;
-  width: max(100%, 18rem);
-  max-height: 16rem;
-  overflow: auto;
-  background: var(--panel);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+.nav-route-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
-.nav-route-list li {
-  padding: 0.45rem 0.55rem;
-  border-radius: calc(var(--radius) - 2px);
+.route-dialog {
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: min(36rem, calc(100vh - 2rem));
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+}
+
+.route-dialog::backdrop {
+  background: rgb(19 40 51 / 45%);
+}
+
+.route-dialog-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: min(36rem, calc(100vh - 2rem));
+}
+
+.route-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem 0.55rem;
+}
+
+.route-dialog-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.route-dialog-close {
+  appearance: none;
+  font: inherit;
   font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 0.3rem 0.55rem;
   cursor: pointer;
 }
 
-.nav-route-list li[aria-selected="true"],
-.nav-route-list li:hover {
+.route-dialog-close:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.route-dialog-search {
+  margin: 0 1rem 0.65rem;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.7rem;
+}
+
+.route-dialog-search:focus {
+  outline: 2px solid color-mix(in srgb, var(--transit) 55%, white);
+  outline-offset: 1px;
+}
+
+.route-dialog-catalog {
+  overflow: auto;
+  padding: 0 0.65rem 0.85rem;
+}
+
+.route-dialog-status {
+  margin: 0.5rem 0.35rem;
+  color: var(--ink-muted);
+  font-size: 0.88rem;
+}
+
+.route-dialog-group {
+  margin: 0.7rem 0.35rem 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.route-dialog-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.route-dialog-row {
+  appearance: none;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 5.5rem 3.5rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: baseline;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius) - 2px);
+  padding: 0.45rem 0.5rem;
+  cursor: pointer;
+}
+
+.route-dialog-row:hover,
+.route-dialog-row[aria-current="true"] {
   background: var(--paper);
 }
 
-.nav-route-empty {
+.route-dialog-mode {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--transit);
+}
+
+.route-dialog-code {
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.route-dialog-name {
+  font-size: 0.88rem;
   color: var(--ink-muted);
-  cursor: default;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .site-footer {

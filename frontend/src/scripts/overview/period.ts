@@ -1,4 +1,4 @@
-import { formatPeriodLabel } from "../../lib/format";
+import { formatPeriodLabel } from "../../lib/format.ts";
 import type { DateRange } from "../../lib/types";
 
 export type PeriodKey = "day" | "yesterday" | "week" | "month" | "all";
@@ -46,11 +46,23 @@ function endOfMonth(month: string): string {
   return toIso(last);
 }
 
+const NZ_ISO_DATE = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Pacific/Auckland",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Calendar date in Pacific/Auckland (YYYY-MM-DD). */
+export function todayNz(now: Date = new Date()): string {
+  return NZ_ISO_DATE.format(now);
+}
+
 export function boundsFromManifest(
   months: readonly string[],
-  updatedAt: string,
+  now: Date | string = new Date(),
 ): PeriodBounds {
-  const asOf = updatedAt.slice(0, 10);
+  const asOf = typeof now === "string" ? now.slice(0, 10) : todayNz(now);
   const firstMonth = months[0] ?? asOf.slice(0, 7);
   const lastMonth = months[months.length - 1] ?? asOf.slice(0, 7);
   return {
