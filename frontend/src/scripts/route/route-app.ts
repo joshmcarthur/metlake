@@ -1,13 +1,15 @@
 import {
   getDailySeries,
   getRouteDailyExport,
+  getRouteLongName,
   getRoutePeriodSummary,
   loadRoutePerformance,
   RoutePerformanceSession,
 } from "../../lib/performance";
-import { fetchRoutePerformanceManifest, monthsIntersectingPeriod } from "../../lib/manifest";
+import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest, monthsIntersectingPeriod } from "../../lib/manifest";
 import { routeIdFromDocument } from "../../lib/route-path";
-import { isArchiveError, type RouteDailyPoint } from "../../lib/types";
+import { queryPageHref } from "../../lib/site";
+import { isArchiveError, type PeriodSummary, type RouteDailyPoint } from "../../lib/types";
 import {
   bindPeriodControls,
   boundsFromManifest,
@@ -21,10 +23,15 @@ import { bindCsvExport, updateParquetLink } from "./export";
 import { bindMetricChips, type RouteMetricState } from "./metrics";
 import { renderRouteScorecard, showRouteScorecardLoading } from "./scorecard";
 import { renderRouteSeries } from "./series";
+import { bindDirectionToggle, type Direction } from "./direction";
+import { renderHourHeatmap } from "./charts/heatmap";
+import { renderInjectors } from "./charts/injectors";
+import { renderStopProfile } from "./charts/profile";
+import { renderDelayRangeForPeriod } from "../charts/delay-range";
 
 let session: RoutePerformanceSession | null = null;
 let loadToken = 0;
-let metricState: RouteMetricState = { metric: "punctuality" };
+let metricState: RouteMetricState = { metrics: new Set(["punctuality", "reliability"]) };
 let currentPeriod: PeriodState | null = null;
 let routeId = "";
 let cachedSeries: RouteDailyPoint[] | null = null;
@@ -32,6 +39,9 @@ let cachedPriorSeries: RouteDailyPoint[] | null = null;
 let cachedCompare = false;
 let routeName = "";
 let commentaryPanel: ReturnType<typeof mountCommentaryPanel> | null = null;
+let currentDirection: Direction = "inbound";
+let cachedSummary: PeriodSummary | null = null;
+let cachedPrior: PeriodSummary | null = null;
 
 function showEmpty(message: string): void {
   const empty = document.getElementById("route-empty");
@@ -50,6 +60,28 @@ function showContent(): void {
   document.getElementById("route-content")?.removeAttribute("hidden");
 }
 
+function renderDelayAnatomy(): void {
+  const root = document.getElementById("route-root");
+  if (!root) return;
+
+  const profile = root.querySelector<HTMLElement>("#profile-root");
+  const injectors = root.querySelector<HTMLElement>("#injector-list");
+  const heatmap = root.querySelector<HTMLElement>("#heatmap-root");
+  if (profile) renderStopProfile(profile);
+  if (injectors) renderInjectors(injectors);
+  if (heatmap) renderHourHeatmap(heatmap);
+}
+
+function updateRouteBrief(): void {
+  if (!cachedSummary) return;
+  commentaryPanel?.updateBrief(
+    buildRouteBrief(routeId, routeName, cachedSummary, cachedPrior, {
+      direction: currentDirection,
+      includeRtFields: false,
+    }),
+  );
+}
+
 function rerenderSeriesForMetric(): void {
   if (!cachedSeries) return;
 
@@ -60,8 +92,7 @@ function rerenderSeriesForMetric(): void {
     seriesRoot,
     cachedSeries,
     cachedPriorSeries,
-    metricState.metric,
-    `Route ${routeId}`,
+    metricState.metrics,
     cachedCompare,
   );
 }
@@ -69,13 +100,15 @@ function rerenderSeriesForMetric(): void {
 function syncRouteHero(root: HTMLElement): void {
   const title = root.querySelector("h1");
   const desc = root.querySelector<HTMLElement>(".desc");
-  const deepLink = root.querySelector<HTMLAnchorElement>('a[href*="/deep/"]');
   if (title) title.textContent = routeId;
   if (desc) desc.textContent = routeName;
-  if (deepLink) deepLink.href = `/routes/${encodeURIComponent(routeId)}/deep/`;
   root.dataset.route = routeId;
   root.dataset.routeName = routeName;
-  document.title = `Route ${routeId} — Metlake`;
+  const queryLink = root.querySelector<HTMLAnchorElement>("[data-query-link]");
+  if (queryLink) queryLink.href = queryPageHref(routeId);
+  document.title = routeName
+    ? `Route ${routeId} · ${routeName} — Metlake`
+    : `Route ${routeId} — Metlake`;
 }
 
 async function refreshRoute(state: PeriodState): Promise<void> {
@@ -96,22 +129,46 @@ async function refreshRoute(state: PeriodState): Promise<void> {
     const latestMonth = months[months.length - 1];
     if (latestMonth) updateParquetLink(latestMonth);
 
-    const [summary, prior, series, priorSeries] = await Promise.all([
+    const [summary, prior, series, priorSeries, longName] = await Promise.all([
       getRoutePeriodSummary(conn, routeId, state.range),
       priorRange ? getRoutePeriodSummary(conn, routeId, priorRange) : Promise.resolve(null),
       getDailySeries(conn, routeId, state.range),
       priorRange ? getDailySeries(conn, routeId, priorRange) : Promise.resolve(null),
+      getRouteLongName(conn, routeId),
     ]);
 
     if (token !== loadToken) return;
 
-    renderRouteScorecard(summary, prior, state.key, state.compare);
-    commentaryPanel?.updateBrief(buildRouteBrief(routeId, routeName, summary, prior));
+    const hasRouteRows =
+      series.length > 0 ||
+      summary.scheduled_trips != null ||
+      summary.punctuality != null;
+    if (!hasRouteRows) {
+      showEmpty(
+        `No route-performance rows for route ${routeId} in this period.`,
+      );
+      return;
+    }
 
+    showContent();
+    if (longName) {
+      routeName = longName;
+      const root = document.getElementById("route-root");
+      if (root) syncRouteHero(root);
+    }
+    renderRouteScorecard(summary, prior, state.key, state.compare);
+
+    cachedSummary = summary;
+    cachedPrior = prior;
     cachedSeries = series;
     cachedPriorSeries = priorSeries;
     cachedCompare = state.compare;
+    updateRouteBrief();
     rerenderSeriesForMetric();
+    renderDelayAnatomy();
+
+    const delayRoot = document.getElementById("route-delay-range");
+    if (delayRoot) void renderDelayRangeForPeriod(delayRoot, conn, state.range, routeId);
   } catch (error) {
     if (token !== loadToken) return;
     const message =
@@ -163,18 +220,27 @@ export async function initRouteApp(): Promise<void> {
 
   try {
     const manifest = await fetchRoutePerformanceManifest();
-    const bounds = boundsFromManifest(manifest.months, manifest.updated_at);
+    const rtManifest = await fetchRtRoutePerformanceManifest();
+    const bounds = boundsFromManifest(manifest.months);
     session.primeManifest(manifest);
+    session.primeRtManifest(rtManifest);
 
     showContent();
 
     const periodEls = getPeriodElements(root);
     if (!periodEls) return;
 
-    bindMetricChips(root, (metric) => {
-      metricState = metric;
+    metricState = bindMetricChips(root, (state) => {
+      metricState = state;
       rerenderSeriesForMetric();
     });
+
+    bindDirectionToggle(root, (direction) => {
+      currentDirection = direction;
+      renderDelayAnatomy();
+      updateRouteBrief();
+    });
+    renderDelayAnatomy();
 
     bindPeriodControls(periodEls, bounds, (state) => {
       currentPeriod = state;

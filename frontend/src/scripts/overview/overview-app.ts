@@ -1,17 +1,16 @@
 import {
   getLeaderboard,
   getNetworkDailySeries,
-  getPeakGapByRoute,
   getPeriodSummary,
   loadRoutePerformance,
   RoutePerformanceSession,
 } from "../../lib/performance";
-import { fetchRoutePerformanceManifest } from "../../lib/manifest";
+import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest } from "../../lib/manifest";
 import { isArchiveError } from "../../lib/types";
 import { renderPunctualityCalendar } from "./charts/calendar";
-import { renderCancellationsSparkline } from "./charts/cancellations";
+import { renderCancellationsChart } from "./charts/cancellations";
+import { renderDelayRangeForPeriod } from "../charts/delay-range";
 import { renderDisabledRtCharts } from "./charts/disabled";
-import { renderPeakGapScatter } from "./charts/peak-gap";
 import {
   bindPeriodControls,
   boundsFromManifest,
@@ -55,13 +54,12 @@ async function refreshPeriod(state: PeriodState): Promise<void> {
     const { conn } = await loadRoutePerformance(state.range, session, fetch, priorRange);
     if (token !== loadToken) return;
 
-    const [summary, prior, best, attention, daily, peakGap] = await Promise.all([
+    const [summary, prior, best, attention, daily] = await Promise.all([
       getPeriodSummary(conn, state.range),
       priorRange ? getPeriodSummary(conn, priorRange) : Promise.resolve(null),
       getLeaderboard(conn, state.range, "best"),
       getLeaderboard(conn, state.range, "attention"),
       getNetworkDailySeries(conn, state.range),
-      getPeakGapByRoute(conn, state.range),
     ]);
 
     if (token !== loadToken) return;
@@ -71,10 +69,10 @@ async function refreshPeriod(state: PeriodState): Promise<void> {
 
     const calRoot = document.getElementById("net-calendar");
     const sparkRoot = document.getElementById("net-cancel-spark");
-    const scatterRoot = document.getElementById("net-scatter");
+    const delayRoot = document.getElementById("net-delay-range");
     if (calRoot) renderPunctualityCalendar(calRoot, daily, state.range);
-    if (sparkRoot) renderCancellationsSparkline(sparkRoot, daily);
-    if (scatterRoot) renderPeakGapScatter(scatterRoot, peakGap);
+    if (sparkRoot) renderCancellationsChart(sparkRoot, daily);
+    if (delayRoot) void renderDelayRangeForPeriod(delayRoot, conn, state.range);
   } catch (error) {
     if (token !== loadToken) return;
     const message =
@@ -96,8 +94,10 @@ export async function initOverviewApp(): Promise<void> {
 
   try {
     const manifest = await fetchRoutePerformanceManifest();
-    const bounds = boundsFromManifest(manifest.months, manifest.updated_at);
+    const rtManifest = await fetchRtRoutePerformanceManifest();
+    const bounds = boundsFromManifest(manifest.months);
     session.primeManifest(manifest);
+    session.primeRtManifest(rtManifest);
 
     showContent();
     renderDisabledRtCharts();

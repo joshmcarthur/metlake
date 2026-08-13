@@ -5,9 +5,14 @@ import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 
 import {
+  lateTripsParquetHttpUrlForMonth,
+  lateTripsVirtualNameForMonth,
   parquetHttpUrlForMonth,
   parquetVirtualNameForMonth,
+  rtParquetHttpUrlForMonth,
+  rtParquetVirtualNameForMonth,
 } from "./manifest";
+import { splicedRoutePerformanceSql } from "./splice";
 import { ArchiveError } from "./types";
 
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
@@ -16,6 +21,12 @@ const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
 };
 
 export const ROUTE_PERFORMANCE_VIEW = "route_performance";
+export const PUBLISHED_ROUTE_PERFORMANCE_VIEW = "route_performance_published";
+export const RT_ROUTE_PERFORMANCE_VIEW = "route_performance_rt";
+export const LATE_TRIPS_VIEW = "late_trips";
+
+const EMPTY_ROUTE_PERFORMANCE_MESSAGE =
+  "No route-performance parquet files intersect the selected period.";
 
 export type DuckDbConnection = duckdb.AsyncDuckDBConnection;
 
@@ -47,15 +58,16 @@ export async function connectDuckDb(): Promise<DuckDbConnection> {
   return db.connect();
 }
 
-export async function registerRoutePerformanceMonths(
+async function registerParquetView(
   conn: DuckDbConnection,
+  viewName: string,
   months: readonly string[],
+  virtualNameForMonth: (month: string) => string,
+  httpUrlForMonth: (month: string) => string,
+  emptyMessage: string,
 ): Promise<void> {
   if (months.length === 0) {
-    throw new ArchiveError(
-      "archive-empty",
-      "No route-performance parquet files intersect the selected period.",
-    );
+    throw new ArchiveError("archive-empty", emptyMessage);
   }
 
   // DuckDB-WASM treats absolute paths like `/data/...` as local VFS globs, not
@@ -64,8 +76,8 @@ export async function registerRoutePerformanceMonths(
   const db = await getDuckDb();
   const virtualNames: string[] = [];
   for (const month of months) {
-    const virtual = parquetVirtualNameForMonth(month);
-    const httpUrl = parquetHttpUrlForMonth(month);
+    const virtual = virtualNameForMonth(month);
+    const httpUrl = httpUrlForMonth(month);
     await db.registerFileURL(
       virtual,
       httpUrl,
@@ -80,10 +92,67 @@ export async function registerRoutePerformanceMonths(
     .join(", ");
 
   await conn.query(`
-    CREATE OR REPLACE VIEW ${ROUTE_PERFORMANCE_VIEW} AS
+    CREATE OR REPLACE VIEW ${viewName} AS
     SELECT *
     FROM read_parquet([${fileList}], union_by_name = true);
   `);
+}
+
+export async function registerSplicedRoutePerformance(
+  conn: DuckDbConnection,
+  publishedMonths: readonly string[],
+  rtMonths: readonly string[],
+): Promise<void> {
+  if (publishedMonths.length === 0 && rtMonths.length === 0) {
+    throw new ArchiveError("archive-empty", EMPTY_ROUTE_PERFORMANCE_MESSAGE);
+  }
+
+  if (publishedMonths.length > 0) {
+    await registerParquetView(
+      conn,
+      PUBLISHED_ROUTE_PERFORMANCE_VIEW,
+      publishedMonths,
+      parquetVirtualNameForMonth,
+      parquetHttpUrlForMonth,
+      EMPTY_ROUTE_PERFORMANCE_MESSAGE,
+    );
+  }
+
+  if (rtMonths.length > 0) {
+    await registerParquetView(
+      conn,
+      RT_ROUTE_PERFORMANCE_VIEW,
+      rtMonths,
+      rtParquetVirtualNameForMonth,
+      rtParquetHttpUrlForMonth,
+      EMPTY_ROUTE_PERFORMANCE_MESSAGE,
+    );
+  }
+
+  await conn.query(
+    splicedRoutePerformanceSql(publishedMonths.length > 0, rtMonths.length > 0),
+  );
+}
+
+export async function registerRoutePerformanceMonths(
+  conn: DuckDbConnection,
+  months: readonly string[],
+): Promise<void> {
+  await registerSplicedRoutePerformance(conn, months, []);
+}
+
+export async function registerLateTripsMonths(
+  conn: DuckDbConnection,
+  months: readonly string[],
+): Promise<void> {
+  await registerParquetView(
+    conn,
+    LATE_TRIPS_VIEW,
+    months,
+    lateTripsVirtualNameForMonth,
+    lateTripsParquetHttpUrlForMonth,
+    "No late-trips parquet files intersect the selected period.",
+  );
 }
 
 export async function closeDuckDb(): Promise<void> {

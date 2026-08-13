@@ -8,7 +8,6 @@ import type {
   RouteCatalogEntry,
   RouteDailyPoint,
   RouteLeaderboardRow,
-  RoutePeakGapRow,
 } from "./types";
 
 export interface LoadedRoutePerformance {
@@ -16,6 +15,31 @@ export interface LoadedRoutePerformance {
   range: DateRange;
   months: string[];
   session: RoutePerformanceSession;
+  estimated: boolean;
+}
+
+function sqlTruthy(value: unknown): boolean {
+  return value === true || value === 1 || value === 1n || value === "true" || value === "1";
+}
+
+async function rangeHasRtSource(
+  conn: DuckDbConnection,
+  range: DateRange,
+  priorRange?: DateRange | null,
+): Promise<boolean> {
+  const priorClause = priorRange
+    ? `OR (day >= DATE '${priorRange.from}' AND day <= DATE '${priorRange.to}')`
+    : "";
+  const result = await conn.query(`
+    SELECT COUNT(*) > 0 AS n
+    FROM ${ROUTE_PERFORMANCE_VIEW}
+    WHERE source = 'gtfs_rt'
+      AND (
+        (day >= DATE '${range.from}' AND day <= DATE '${range.to}')
+        ${priorClause}
+      );
+  `);
+  return sqlTruthy(firstRow(result)?.n);
 }
 
 export async function loadRoutePerformance(
@@ -39,7 +63,8 @@ export async function loadRoutePerformance(
     }
   }
   const months = [...monthSet].sort();
-  return { conn, range, months, session };
+  const estimated = await rangeHasRtSource(conn, range, priorRange);
+  return { conn, range, months, session, estimated };
 }
 
 export { RoutePerformanceSession } from "./session";
@@ -74,7 +99,7 @@ export async function getRoutePeriodSummary(
       AVG(cancellations_rate) AS cancellations_rate,
       AVG(mean_departure_time_variance) AS mean_departure_time_variance
     FROM ${ROUTE_PERFORMANCE_VIEW}
-    WHERE route = '${safeRoute}'
+    WHERE (route = '${safeRoute}' OR CAST(route_short_name AS VARCHAR) = '${safeRoute}')
       AND day >= DATE '${range.from}'
       AND day <= DATE '${range.to}';
   `);
@@ -90,6 +115,19 @@ export async function getRoutePeriodSummary(
     cancellations_rate: toNullableNumber(row?.cancellations_rate),
     mean_departure_time_variance: toNullableNumber(row?.mean_departure_time_variance),
   };
+}
+
+export async function getRouteLongName(
+  conn: DuckDbConnection,
+  route: string,
+): Promise<string> {
+  const safeRoute = route.replace(/'/g, "''");
+  const result = await conn.query(`
+    SELECT any_value(route_long_name) AS route_long_name
+    FROM ${ROUTE_PERFORMANCE_VIEW}
+    WHERE (route = '${safeRoute}' OR CAST(route_short_name AS VARCHAR) = '${safeRoute}');
+  `);
+  return toNullableString(firstRow(result)?.route_long_name)?.trim() ?? "";
 }
 
 export async function getPeriodSummary(
@@ -177,7 +215,7 @@ export async function getDailySeries(
       peak_punctuality,
       mean_departure_time_variance
     FROM ${ROUTE_PERFORMANCE_VIEW}
-    WHERE route = '${safeRoute}'
+    WHERE (route = '${safeRoute}' OR CAST(route_short_name AS VARCHAR) = '${safeRoute}')
       AND day >= DATE '${range.from}'
       AND day <= DATE '${range.to}'
     ORDER BY day;
@@ -215,7 +253,7 @@ export async function getRouteDailyExport(
       peak_punctuality,
       mean_departure_time_variance
     FROM ${ROUTE_PERFORMANCE_VIEW}
-    WHERE route = '${safeRoute}'
+    WHERE (route = '${safeRoute}' OR CAST(route_short_name AS VARCHAR) = '${safeRoute}')
       AND day >= DATE '${range.from}'
       AND day <= DATE '${range.to}'
     ORDER BY day;
@@ -271,7 +309,8 @@ export async function getRouteCatalog(conn: DuckDbConnection): Promise<RouteCata
     SELECT
       route,
       any_value(route_short_name) AS route_short_name,
-      any_value(route_long_name) AS route_long_name
+      any_value(route_long_name) AS route_long_name,
+      any_value(route_type) AS route_type
     FROM ${ROUTE_PERFORMANCE_VIEW}
     GROUP BY route
     ORDER BY route ASC;
@@ -281,37 +320,7 @@ export async function getRouteCatalog(conn: DuckDbConnection): Promise<RouteCata
     route: String(row.route),
     route_short_name: toNullableString(row.route_short_name),
     route_long_name: toNullableString(row.route_long_name),
-  }));
-}
-
-export async function getPeakGapByRoute(
-  conn: DuckDbConnection,
-  range: DateRange,
-): Promise<RoutePeakGapRow[]> {
-  const result = await conn.query(`
-    SELECT
-      route,
-      route_short_name,
-      route_long_name,
-      AVG(punctuality) AS punctuality,
-      AVG(peak_punctuality) AS peak_punctuality,
-      (AVG(punctuality) - AVG(peak_punctuality)) * 100 AS peak_gap_pp
-    FROM ${ROUTE_PERFORMANCE_VIEW}
-    WHERE day >= DATE '${range.from}'
-      AND day <= DATE '${range.to}'
-      AND punctuality IS NOT NULL
-      AND peak_punctuality IS NOT NULL
-    GROUP BY route, route_short_name, route_long_name
-    ORDER BY peak_gap_pp DESC NULLS LAST, route ASC;
-  `);
-
-  return result.toArray().map((row) => ({
-    route: String(row.route),
-    route_short_name: toNullableString(row.route_short_name),
-    route_long_name: toNullableString(row.route_long_name),
-    punctuality: toNullableNumber(row.punctuality),
-    peak_punctuality: toNullableNumber(row.peak_punctuality),
-    peak_gap_pp: toNullableNumber(row.peak_gap_pp),
+    route_type: toNullableNumber(row.route_type),
   }));
 }
 
