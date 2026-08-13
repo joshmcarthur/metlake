@@ -14,6 +14,9 @@
 # Daily curated rollups
 30 2 * * * /opt/metlake/scripts/project-gtfs-rt-day.sh
 40 2 * * * /opt/metlake/scripts/project-gtfs.sh
+45 2 * * * /opt/metlake/scripts/derive-late-trips.sh
+47 2 * * * /opt/metlake/scripts/derive-trip-performance.sh
+48 2 * * * /opt/metlake/scripts/derive-rt-route-performance.sh
 50 2 * * * /opt/metlake/scripts/project-performance-day.sh
 
 # Monthly rollups + thin derive

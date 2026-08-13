@@ -91,6 +91,15 @@ test "${tp_rows}" -ge 1
 tp_t1="$(duckdb -csv -c "SELECT scheduled, observed FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't1';" | tail -n 1)"
 test "${tp_t1}" = "true,true"
 
+echo "== derive rt-route-performance =="
+MONTH=2026-08 "${ROOT}/scripts/derive-rt-route-performance.sh"
+test -f "${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet"
+grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/rt-route-performance/_manifest.json"
+rt_sched="$(duckdb -csv -c "SELECT SUM(scheduled_trips) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet');" | tail -n 1)"
+test "${rt_sched}" -ge 1
+rt_source="$(duckdb -csv -c "SELECT DISTINCT source FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet');" | tail -n 1)"
+test "${rt_source}" = "gtfs_rt"
+
 echo "== status =="
 "${ROOT}/scripts/status.sh" >/dev/null
 
