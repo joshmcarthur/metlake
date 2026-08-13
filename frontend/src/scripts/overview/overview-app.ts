@@ -1,3 +1,8 @@
+import { ensureAnatomyViews } from "../../lib/anatomy";
+import {
+  networkHourHeatSql,
+  sharedChokePointsSql,
+} from "../../lib/anatomy-sql";
 import { formatPeriodLabel } from "../../lib/format";
 import {
   fetchRoutePerformanceManifest,
@@ -14,8 +19,9 @@ import {
 import { isArchiveError } from "../../lib/types";
 import { renderDelayRangeForPeriod } from "../charts/delay-range";
 import { renderPunctualityCalendar } from "./charts/calendar";
+import { renderChokePoints } from "./charts/choke-points";
 import { renderCancellationsChart } from "./charts/cancellations";
-import { renderDisabledRtCharts } from "./charts/disabled";
+import { renderNetworkHourHeat } from "./charts/hour-heat";
 import {
   bindPeriodControls,
   boundsFromManifest,
@@ -88,6 +94,55 @@ async function refreshPeriod(
     renderScorecard(summary, prior, best, attention, state.key, state.compare);
     commentaryPanel?.updateBrief(buildNetworkBrief(summary, prior, best, attention));
 
+    const hourRoot = document.getElementById("net-hour-heat");
+    const chokeRoot = document.getElementById("net-corridors");
+    const flags = await ensureAnatomyViews(conn, state.range);
+    if (token !== loadToken) return;
+    if (hourRoot) {
+      if (!flags.hourHeat) {
+        hourRoot.className = "heatmap chart-slot-disabled";
+        hourRoot.innerHTML = `<p class="rt-stub-note">No trip-update delay data for this period.</p>`;
+      } else {
+        const table = await conn.query(
+          networkHourHeatSql(state.range.from, state.range.to),
+        );
+        if (token !== loadToken) return;
+        renderNetworkHourHeat(
+          hourRoot,
+          table.toArray().map((row) => ({
+            weekday: Number(row.weekday),
+            hour: Number(row.hour),
+            delay_seconds:
+              row.delay_seconds == null ? null : Number(row.delay_seconds),
+          })),
+        );
+      }
+    }
+    if (chokeRoot) {
+      if (!flags.injectors) {
+        chokeRoot.className = "chart-slot-disabled";
+        chokeRoot.innerHTML = `<p class="rt-stub-note">No trip-update delay data for this period.</p>`;
+      } else {
+        const table = await conn.query(
+          sharedChokePointsSql(state.range.from, state.range.to),
+        );
+        if (token !== loadToken) return;
+        renderChokePoints(
+          chokeRoot,
+          table.toArray().map((row) => ({
+            from_stop_name:
+              row.from_stop_name == null ? null : String(row.from_stop_name),
+            to_stop_name:
+              row.to_stop_name == null ? null : String(row.to_stop_name),
+            delay_added:
+              row.delay_added == null ? null : Number(row.delay_added),
+            n_routes: Number(row.n_routes),
+            n_trips: Number(row.n_trips),
+          })),
+        );
+      }
+    }
+
     const calRoot = document.getElementById("net-calendar");
     const sparkRoot = document.getElementById("net-cancel-spark");
     const delayRoot = document.getElementById("net-delay-range");
@@ -124,7 +179,6 @@ export async function initOverviewApp(): Promise<void> {
     session.primeRtManifest(rtManifest);
 
     showContent();
-    renderDisabledRtCharts();
 
     const commentaryRoot = document.querySelector<HTMLElement>("[data-ai-commentary]");
     if (commentaryRoot) commentaryPanel = mountCommentaryPanel(commentaryRoot);
