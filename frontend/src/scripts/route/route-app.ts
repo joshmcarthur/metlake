@@ -51,6 +51,7 @@ import { renderDelayRangeForPeriod } from "../charts/delay-range";
 
 let session: RoutePerformanceSession | null = null;
 let loadToken = 0;
+let anatomyToken = 0;
 let metricState: RouteMetricState = { metrics: new Set(["punctuality", "reliability"]) };
 let currentPeriod: PeriodState | null = null;
 let routeId = "";
@@ -88,6 +89,7 @@ async function renderDelayAnatomy(
   route: string,
   direction: Direction,
 ): Promise<void> {
+  const token = ++anatomyToken;
   const root = document.getElementById("route-root");
   if (!root) return;
 
@@ -104,6 +106,7 @@ async function renderDelayAnatomy(
 
   const directionId = directionIdFromChip(direction);
   const flags = await ensureAnatomyViews(conn, range);
+  if (token !== anatomyToken) return;
 
   if (profile) {
     if (!flags.profile) {
@@ -112,6 +115,7 @@ async function renderDelayAnatomy(
       const table = await conn.query(
         routeStopProfileSql(route, range.from, range.to, directionId),
       );
+      if (token !== anatomyToken) return;
       renderStopProfile(
         profile,
         table.toArray().map((row) => ({
@@ -134,6 +138,7 @@ async function renderDelayAnatomy(
       const table = await conn.query(
         routeInjectorsSql(route, range.from, range.to, directionId),
       );
+      if (token !== anatomyToken) return;
       renderInjectors(
         injectors,
         table.toArray().map((row) => ({
@@ -156,6 +161,7 @@ async function renderDelayAnatomy(
       const table = await conn.query(
         routeHourHeatSql(route, range.from, range.to, directionId),
       );
+      if (token !== anatomyToken) return;
       renderHourHeatmap(
         heatmap,
         table.toArray().map((row) => ({
