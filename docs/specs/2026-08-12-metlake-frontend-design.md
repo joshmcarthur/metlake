@@ -11,11 +11,10 @@ The Astro app under [`frontend/src/`](../../frontend/src/) is the UI source of t
 | Path | Screen |
 | --- | --- |
 | `/` | Network scorecard + city-wide charts + auto commentary |
-| `/routes/[route]/` | Published metrics scorecard (pick route via header typeahead) |
-| `/routes/[route]/deep/` | Delay anatomy (needs GTFS-RT-derived tables) |
+| `/routes/[route]/` | Published metrics + delay anatomy (pick route via [header dialog](./2026-08-13-route-picker-dialog-design.md)) |
 | `/query/` | DuckDB-WASM SQL + file links |
 
-See also [`2026-08-12-route-picker-design.md`](./2026-08-12-route-picker-design.md).
+See also [`2026-08-13-route-picker-dialog-design.md`](./2026-08-13-route-picker-dialog-design.md) and [`2026-08-13-route-page-design.md`](./2026-08-13-route-page-design.md).
 
 ## Product framing
 
@@ -27,15 +26,14 @@ See also [`2026-08-12-route-picker-design.md`](./2026-08-12-route-picker-design.
 ## Information architecture
 
 1. **Overview** — period control; commentary; summary tiles; most/least punctual routes; punctuality calendar; cancellations sparkline; peak-gap scatter; network hour×weekday heat; shared choke points.
-2. **Route scorecard** — chosen via inline nav typeahead; published reliability / punctuality / cancellations / series; link to deep dive.
-3. **Route deep** — stop delay profile, delay injectors, hour heat, recovery vs fade (needs GTFS-RT-derived tables).
-4. **Query** — SQL against `/data/…`, CSV export, links into directory listing.
+2. **Route page** — chosen via header dialog; published reliability / punctuality / cancellations / series, then delay anatomy (stop profile, injectors, hour heat, recovery vs fade; needs GTFS-RT-derived tables).
+3. **Query** — SQL against `/data/…`, CSV export, links into directory listing.
 
 ## Data
 
 | UI surface | Primary data |
 | --- | --- |
-| Overview scorecard, route scorecard, calendar, peak gap, cancellations | `derived/route-performance/*.parquet` (+ `_manifest.json`) |
+| Overview scorecard, route scorecard, calendar, peak gap, cancellations | `derived/route-performance/*.parquet` (+ `_manifest.json`); may include RT-estimated days from `derived/rt-route-performance/` when the published CSV has no row |
 | Network/route hour heat, stop profile, injectors, corridors | New derives from GTFS-RT trip updates + static GTFS (phase after scorecard) |
 | `/data/` listing | Full `$ARCHIVE_ROOT` browse; UI features `curated/` + `derived/` |
 

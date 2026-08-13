@@ -1,3 +1,5 @@
+import { formatPeriodLabel } from "../../lib/format";
+import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest } from "../../lib/manifest";
 import {
   getLeaderboard,
   getNetworkDailySeries,
@@ -5,17 +7,18 @@ import {
   loadRoutePerformance,
   RoutePerformanceSession,
 } from "../../lib/performance";
-import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest } from "../../lib/manifest";
 import { isArchiveError } from "../../lib/types";
+import { renderDelayRangeForPeriod } from "../charts/delay-range";
 import { renderPunctualityCalendar } from "./charts/calendar";
 import { renderCancellationsChart } from "./charts/cancellations";
-import { renderDelayRangeForPeriod } from "../charts/delay-range";
 import { renderDisabledRtCharts } from "./charts/disabled";
 import {
   bindPeriodControls,
   boundsFromManifest,
   getPeriodElements,
   getPriorRange,
+  unionManifestMonths,
+  type PeriodElements,
   type PeriodState,
 } from "./period";
 import { buildNetworkBrief } from "../commentary/brief";
@@ -43,7 +46,10 @@ function showContent(): void {
   document.getElementById("overview-content")?.removeAttribute("hidden");
 }
 
-async function refreshPeriod(state: PeriodState): Promise<void> {
+async function refreshPeriod(
+  state: PeriodState,
+  periodEls: PeriodElements,
+): Promise<void> {
   if (!session) return;
 
   const token = ++loadToken;
@@ -51,8 +57,19 @@ async function refreshPeriod(state: PeriodState): Promise<void> {
 
   try {
     const priorRange = state.compare ? getPriorRange(state.range) : null;
-    const { conn } = await loadRoutePerformance(state.range, session, fetch, priorRange);
+    const { conn, estimated } = await loadRoutePerformance(
+      state.range,
+      session,
+      fetch,
+      priorRange,
+    );
     if (token !== loadToken) return;
+
+    periodEls.rangeMeta.textContent = formatPeriodLabel(
+      state.range.from,
+      state.range.to,
+      estimated,
+    );
 
     const [summary, prior, best, attention, daily] = await Promise.all([
       getPeriodSummary(conn, state.range),
@@ -95,7 +112,9 @@ export async function initOverviewApp(): Promise<void> {
   try {
     const manifest = await fetchRoutePerformanceManifest();
     const rtManifest = await fetchRtRoutePerformanceManifest();
-    const bounds = boundsFromManifest(manifest.months);
+    const bounds = boundsFromManifest(
+      unionManifestMonths(manifest.months, rtManifest?.months),
+    );
     session.primeManifest(manifest);
     session.primeRtManifest(rtManifest);
 
@@ -109,7 +128,7 @@ export async function initOverviewApp(): Promise<void> {
     if (!periodEls) return;
 
     bindPeriodControls(periodEls, bounds, (state) => {
-      void refreshPeriod(state);
+      void refreshPeriod(state, periodEls);
     });
   } catch (error) {
     const message =

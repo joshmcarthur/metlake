@@ -58,6 +58,18 @@ export function todayNz(now: Date = new Date()): string {
   return NZ_ISO_DATE.format(now);
 }
 
+/** Sorted unique YYYY-MM months from official and optional RT manifests. */
+export function unionManifestMonths(
+  ...lists: Array<readonly string[] | null | undefined>
+): string[] {
+  const months = new Set<string>();
+  for (const list of lists) {
+    if (!list) continue;
+    for (const month of list) months.add(month);
+  }
+  return [...months].sort();
+}
+
 export function boundsFromManifest(
   months: readonly string[],
   now: Date | string = new Date(),

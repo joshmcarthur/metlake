@@ -58,7 +58,7 @@ open http://localhost:8080
 
 Browse files at [http://localhost:8080/data/](http://localhost:8080/data/). The archive mount uses the same host path as the appliance: `${METLAKE_ARCHIVE_HOST_PATH:-./archive}:/data:ro`.
 
-Use the header **route typeahead** to open any published route scorecard; deep dive stays linked from the scorecard.
+Use **Select a route** in the header to open any published route scorecard.
 
 Local development without Docker:
 
@@ -84,11 +84,13 @@ DATE=2026-08-12 ./scripts/project-gtfs-rt-day.sh
 DATE=2026-08-12 ./scripts/project-gtfs.sh
 DATE=2026-08-12 ./scripts/project-performance-day.sh
 MONTH=2026-08 ./scripts/derive-route-performance.sh
+MONTH=2026-08 ./scripts/derive-trip-performance.sh
+MONTH=2026-08 ./scripts/derive-rt-route-performance.sh
 
 ./scripts/status.sh
 ```
 
-Each job is its own script under `scripts/`. Shared helpers live in `lib/common.sh`. Schedule definitions are in [`crontab`](crontab).
+Each job is its own script under `scripts/`. Shared helpers live in `lib/common.sh`. Schedule definitions are in [`crontab`](crontab). The UI unions RT route-performance under official CSV days (official wins on overlap).
 
 ## Archive layout
 

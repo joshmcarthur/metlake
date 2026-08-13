@@ -1,3 +1,5 @@
+import { formatPeriodLabel } from "../../lib/format";
+import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest, monthsIntersectingPeriod } from "../../lib/manifest";
 import {
   getDailySeries,
   getRouteDailyExport,
@@ -6,7 +8,6 @@ import {
   loadRoutePerformance,
   RoutePerformanceSession,
 } from "../../lib/performance";
-import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest, monthsIntersectingPeriod } from "../../lib/manifest";
 import { routeIdFromDocument } from "../../lib/route-path";
 import { queryPageHref } from "../../lib/site";
 import { isArchiveError, type PeriodSummary, type RouteDailyPoint } from "../../lib/types";
@@ -15,6 +16,8 @@ import {
   boundsFromManifest,
   getPeriodElements,
   getPriorRange,
+  unionManifestMonths,
+  type PeriodElements,
   type PeriodState,
 } from "../overview/period";
 import { buildRouteBrief } from "../commentary/brief";
@@ -111,7 +114,10 @@ function syncRouteHero(root: HTMLElement): void {
     : `Route ${routeId} — Metlake`;
 }
 
-async function refreshRoute(state: PeriodState): Promise<void> {
+async function refreshRoute(
+  state: PeriodState,
+  periodEls: PeriodElements,
+): Promise<void> {
   if (!session) return;
 
   const token = ++loadToken;
@@ -119,8 +125,19 @@ async function refreshRoute(state: PeriodState): Promise<void> {
 
   try {
     const priorRange = state.compare ? getPriorRange(state.range) : null;
-    const { conn } = await loadRoutePerformance(state.range, session, fetch, priorRange);
+    const { conn, estimated } = await loadRoutePerformance(
+      state.range,
+      session,
+      fetch,
+      priorRange,
+    );
     if (token !== loadToken) return;
+
+    periodEls.rangeMeta.textContent = formatPeriodLabel(
+      state.range.from,
+      state.range.to,
+      estimated,
+    );
 
     const manifest = session.getManifest();
     const months = manifest
@@ -221,7 +238,9 @@ export async function initRouteApp(): Promise<void> {
   try {
     const manifest = await fetchRoutePerformanceManifest();
     const rtManifest = await fetchRtRoutePerformanceManifest();
-    const bounds = boundsFromManifest(manifest.months);
+    const bounds = boundsFromManifest(
+      unionManifestMonths(manifest.months, rtManifest?.months),
+    );
     session.primeManifest(manifest);
     session.primeRtManifest(rtManifest);
 
@@ -244,7 +263,7 @@ export async function initRouteApp(): Promise<void> {
 
     bindPeriodControls(periodEls, bounds, (state) => {
       currentPeriod = state;
-      void refreshRoute(state);
+      void refreshRoute(state, periodEls);
     });
   } catch (error) {
     const message =
