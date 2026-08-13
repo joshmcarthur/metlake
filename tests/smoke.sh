@@ -29,6 +29,8 @@ hh=12
 mkdir -p "${ARCHIVE_ROOT}/raw/gtfs-rt/tripupdates/${ymd}"
 cp "${ROOT}/tests/fixtures/gtfs-rt/tripupdates.json" \
   "${ARCHIVE_ROOT}/raw/gtfs-rt/tripupdates/${ymd}/${hh}-00.json"
+cp "${ROOT}/tests/fixtures/gtfs-rt/tripupdates-object-stu.json" \
+  "${ARCHIVE_ROOT}/raw/gtfs-rt/tripupdates/${ymd}/${hh}-05.json"
 HOUR=2026-08-01T12 FEED=tripupdates "${ROOT}/scripts/project-gtfs-rt-hour.sh"
 test -f "${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/hourly/2026/08/01/12.parquet"
 
@@ -62,6 +64,32 @@ grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/route-performance/_man
 
 rows="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/route-performance/2026-08.parquet');" | tail -n 1)"
 test "${rows}" -ge 1
+
+echo "== derive late trips =="
+MONTH=2026-08 "${ROOT}/scripts/derive-late-trips.sh"
+test -f "${ARCHIVE_ROOT}/derived/late-trips/2026-08.parquet"
+test -f "${ARCHIVE_ROOT}/derived/late-trips/_manifest.json"
+grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/late-trips/_manifest.json"
+
+late_rows="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/late-trips/2026-08.parquet');" | tail -n 1)"
+test "${late_rows}" -eq 2
+
+late_delays="$(duckdb -csv -c "SELECT delay_seconds FROM read_parquet('${ARCHIVE_ROOT}/derived/late-trips/2026-08.parquet') ORDER BY delay_seconds;" | tail -n +2 | tr '\n' ' ')"
+echo "${late_delays}" | grep -q '180'
+echo "${late_delays}" | grep -q '240'
+
+late_routes="$(duckdb -csv -c "SELECT DISTINCT route FROM read_parquet('${ARCHIVE_ROOT}/derived/late-trips/2026-08.parquet');" | tail -n +2)"
+test "${late_routes}" = "1"
+
+echo "== derive trip-performance =="
+MONTH=2026-08 "${ROOT}/scripts/derive-trip-performance.sh"
+test -f "${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet"
+test -f "${ARCHIVE_ROOT}/derived/trip-performance/_manifest.json"
+grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/trip-performance/_manifest.json"
+tp_rows="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet');" | tail -n 1)"
+test "${tp_rows}" -ge 1
+tp_t1="$(duckdb -csv -c "SELECT scheduled, observed FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't1';" | tail -n 1)"
+test "${tp_t1}" = "true,true"
 
 echo "== status =="
 "${ROOT}/scripts/status.sh" >/dev/null
