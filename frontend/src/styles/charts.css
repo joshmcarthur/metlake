@@ -39,6 +39,23 @@
   background: var(--signal);
 }
 
+.swatch-punctuality {
+  background: var(--transit);
+}
+
+.swatch-reliability {
+  background: var(--live);
+}
+
+.swatch-peak {
+  background: var(--warn);
+}
+
+.swatch-prior {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--ink-muted);
+}
+
 .chart-slot {
   display: grid;
   place-items: center;
@@ -232,27 +249,6 @@
   fill: var(--ink-muted);
 }
 
-.scatter {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.scatter .pt {
-  fill: var(--transit);
-  opacity: 0.75;
-}
-
-.scatter .pt.flag {
-  fill: var(--warn);
-}
-
-.scatter .axis-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  fill: var(--ink-muted);
-}
-
 .corridor-table {
   width: 100%;
   border-collapse: collapse;
@@ -280,9 +276,158 @@
   font-variant-numeric: tabular-nums;
 }
 
-.spark {
-  display: inline-block;
-  vertical-align: middle;
+.cancel-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.cancel-chart .axis {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+
+.cancel-chart .grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.cancel-chart .area {
+  fill: color-mix(in srgb, var(--warn) 16%, transparent);
+}
+
+.cancel-chart .line {
+  fill: none;
+  stroke: var(--warn);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.cancel-chart .median {
+  stroke: var(--ink-muted);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.cancel-chart .tick {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-muted);
+}
+
+.cancel-chart .median-label {
+  font-size: 8px;
+  letter-spacing: 0.02em;
+}
+
+.cancel-chart .pt {
+  fill: var(--warn);
+}
+
+.cancel-chart .pt.spike {
+  fill: var(--bad);
+}
+
+.cancel-chart .spike-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  fill: var(--bad);
+}
+
+.cancel-chart-meta {
+  margin: 0.45rem 0 0;
+}
+
+.series-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.series-chart .axis {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+
+.series-chart .grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.series-chart .tick {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-muted);
+}
+
+.series-chart .line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.series-chart .line-punctuality {
+  stroke: var(--transit);
+}
+
+.series-chart .line-reliability {
+  stroke: var(--live);
+}
+
+.series-chart .line-peak {
+  stroke: var(--warn);
+}
+
+.series-chart .pt-punctuality {
+  fill: var(--transit);
+}
+
+.series-chart .pt-reliability {
+  fill: var(--live);
+}
+
+.series-chart .pt-peak {
+  fill: var(--warn);
+}
+
+.delay-range {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.delay-range .axis {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+
+.delay-range .span {
+  fill: color-mix(in srgb, var(--warn) 35%, white);
+}
+
+.delay-range .typical {
+  fill: var(--warn);
+  stroke: var(--panel);
+  stroke-width: 2;
+}
+
+.delay-range .tick,
+.delay-range .label {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--ink-muted);
+}
+
+.delay-range .label.typical {
+  fill: var(--ink);
+  font-weight: 600;
+}
+
+.delay-range-meta {
+  margin: 0.45rem 0 0;
 }
 
 .chart-slot.bare {

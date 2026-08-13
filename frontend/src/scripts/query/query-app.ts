@@ -1,12 +1,15 @@
-import { fetchRoutePerformanceManifest } from "../../lib/manifest";
+import {
+  fetchRoutePerformanceManifest,
+  fetchRtRoutePerformanceManifest,
+  requireRoutePerformanceSource,
+} from "../../lib/manifest";
 import { RoutePerformanceSession } from "../../lib/performance";
+import { routeFromQuerySearch } from "../../lib/site";
+import { unionManifestMonths } from "../overview/period";
 import { isArchiveError } from "../../lib/types";
 import { bindCsvDownload } from "./csv-export";
-import {
-  bindSqlEditor,
-  getDefaultSampleSql,
-  renderFileLinks,
-} from "./editor";
+import { bindSqlEditor, renderFileLinks } from "./editor";
+import { getDefaultSampleSql } from "./sample-sql";
 import { runUserQuery, renderResultTable, type QueryResult } from "./runner";
 
 let session: RoutePerformanceSession | null = null;
@@ -39,13 +42,22 @@ export async function initQueryApp(): Promise<void> {
 
   try {
     const manifest = await fetchRoutePerformanceManifest();
+    const rtManifest = await fetchRtRoutePerformanceManifest();
+    requireRoutePerformanceSource(manifest, rtManifest);
     session.primeManifest(manifest);
+    session.primeRtManifest(rtManifest);
 
-    const sampleSql = getDefaultSampleSql(manifest.months, manifest.updated_at);
+    const months = unionManifestMonths(manifest?.months, rtManifest?.months);
+    const updatedAt = manifest?.updated_at ?? rtManifest?.updated_at ?? "";
+    const sampleSql = getDefaultSampleSql(
+      months,
+      updatedAt,
+      routeFromQuerySearch(window.location.search),
+    );
     textarea.value = sampleSql;
     bindSqlEditor(textarea, resetButton, sampleSql);
 
-    if (fileLinks) renderFileLinks(manifest.months, fileLinks);
+    if (fileLinks) renderFileLinks(months, fileLinks);
 
     runButton.disabled = false;
     resetButton?.removeAttribute("disabled");

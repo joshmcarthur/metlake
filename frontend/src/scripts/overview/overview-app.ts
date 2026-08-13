@@ -1,5 +1,9 @@
 import { formatPeriodLabel } from "../../lib/format";
-import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest } from "../../lib/manifest";
+import {
+  fetchRoutePerformanceManifest,
+  fetchRtRoutePerformanceManifest,
+  requireRoutePerformanceSource,
+} from "../../lib/manifest";
 import {
   getLeaderboard,
   getNetworkDailySeries,
@@ -112,8 +116,9 @@ export async function initOverviewApp(): Promise<void> {
   try {
     const manifest = await fetchRoutePerformanceManifest();
     const rtManifest = await fetchRtRoutePerformanceManifest();
+    requireRoutePerformanceSource(manifest, rtManifest);
     const bounds = boundsFromManifest(
-      unionManifestMonths(manifest.months, rtManifest?.months),
+      unionManifestMonths(manifest?.months, rtManifest?.months),
     );
     session.primeManifest(manifest);
     session.primeRtManifest(rtManifest);

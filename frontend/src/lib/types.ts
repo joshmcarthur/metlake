@@ -69,6 +69,9 @@ export interface DelayRange {
 
 export type ArchiveErrorKind = "archive-empty" | "manifest-not-found" | "manifest-invalid";
 
+export const EMPTY_ROUTE_PERFORMANCE_MESSAGE =
+  "No route-performance parquet files intersect the selected period.";
+
 export class ArchiveError extends Error {
   readonly kind: ArchiveErrorKind;
 

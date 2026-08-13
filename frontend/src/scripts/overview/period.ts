@@ -77,10 +77,11 @@ export function boundsFromManifest(
   const asOf = typeof now === "string" ? now.slice(0, 10) : todayNz(now);
   const firstMonth = months[0] ?? asOf.slice(0, 7);
   const lastMonth = months[months.length - 1] ?? asOf.slice(0, 7);
+  const monthEnd = endOfMonth(lastMonth);
   return {
     asOf,
     allFrom: `${firstMonth}-01`,
-    allTo: endOfMonth(lastMonth),
+    allTo: monthEnd < asOf ? monthEnd : asOf,
   };
 }
 

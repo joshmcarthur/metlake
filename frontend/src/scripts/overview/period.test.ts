@@ -48,7 +48,7 @@ test("all available includes RT months so live-feed days are in bounds", () => {
   );
   assert.deepEqual(rangeForPeriod("all", bounds), {
     from: "2018-07-01",
-    to: "2026-08-31",
+    to: "2026-08-13",
   });
 });
 

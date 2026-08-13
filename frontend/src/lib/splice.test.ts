@@ -17,7 +17,7 @@ test("fetches RT files when the window has unpublished days", () => {
 
 test("spliced SQL unions RT days the CSV lacks", () => {
   const sql = splicedRoutePerformanceSql(true, true);
-  assert.match(sql, /UNION ALL/);
+  assert.match(sql, /UNION ALL BY NAME/);
   assert.match(sql, /NOT IN/);
   assert.match(sql, /'published'/);
 });

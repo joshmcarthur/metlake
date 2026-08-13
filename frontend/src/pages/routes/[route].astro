@@ -1,8 +1,16 @@
 ---
 import CommentaryRail from "../../components/CommentaryRail.astro";
+import HeatmapLegend from "../../components/HeatmapLegend.astro";
 import PeriodControls from "../../components/PeriodControls.astro";
 import SummaryTiles from "../../components/SummaryTiles.astro";
-import { findRoute, PLACEHOLDER_ROUTES, ROUTE_SHELL, ROUTE_TILES } from "../../data/placeholder";
+import {
+  findRoute,
+  PLACEHOLDER_ROUTES,
+  RECOVERY_TILES,
+  ROUTE_SHELL,
+  ROUTE_TILES,
+} from "../../data/placeholder";
+import { queryPageHref } from "../../lib/site";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export function getStaticPaths() {
@@ -25,12 +33,16 @@ const resolved = routeRef ?? findRoute(route ?? "");
 ---
 
 <BaseLayout
-  title={`Route ${resolved.route} — Metlake`}
+  title={
+    resolved.name
+      ? `Route ${resolved.route} · ${resolved.name} — Metlake`
+      : `Route ${resolved.route} — Metlake`
+  }
   current="route"
   attribution="route"
 >
   <div
-    class="page-with-rail"
+    class="wrap page-with-rail"
     id="route-root"
     data-route={resolved.route}
     data-route-name={resolved.name}
@@ -55,20 +67,6 @@ const resolved = routeRef ?? findRoute(route ?? "");
           <p class="eyebrow">Route</p>
           <h1>{resolved.route}</h1>
           <p class="desc">{resolved.name}</p>
-          <div class="metric-toggle" role="group" aria-label="Metric">
-            <button type="button" class="chip" data-metric-chip="punctuality" aria-pressed="true">
-              Punctuality
-            </button>
-            <button type="button" class="chip" data-metric-chip="reliability" aria-pressed="false">
-              Reliability
-            </button>
-            <button type="button" class="chip" data-metric-chip="cancellations" aria-pressed="false">
-              Cancellations
-            </button>
-            <button type="button" class="chip" data-metric-chip="peak" aria-pressed="false">
-              Peak only
-            </button>
-          </div>
         </section>
 
         <PeriodControls heading="Period" interactive showCompare />
@@ -77,12 +75,80 @@ const resolved = routeRef ?? findRoute(route ?? "");
           <SummaryTiles tiles={ROUTE_TILES} interactive variant="route" />
         </section>
 
-        <section class="section" aria-labelledby="series-heading">
-          <div class="section-head">
-            <h2 id="series-heading">Daily series</h2>
-            <p>One point per day in range.</p>
+        <section class="section viz-panel" aria-labelledby="series-heading">
+          <div class="viz-head">
+            <div>
+              <h2 id="series-heading">Daily published rates</h2>
+              <p>Percent of scheduled trips · one point per day</p>
+            </div>
+            <div class="metric-toggle" role="group" aria-label="Published rates">
+              <button type="button" class="chip" data-metric-chip="punctuality" aria-pressed="true">
+                Punctuality
+              </button>
+              <button type="button" class="chip" data-metric-chip="reliability" aria-pressed="true">
+                Reliability
+              </button>
+              <button type="button" class="chip" data-metric-chip="peak" aria-pressed="false">
+                Peak punctuality
+              </button>
+            </div>
           </div>
-          <div class="chart" id="route-series"></div>
+          <div id="route-series"></div>
+        </section>
+
+        <section class="section viz-panel" aria-labelledby="delay-range-heading">
+          <div class="viz-head">
+            <h2 id="delay-range-heading">When trips ran late</h2>
+            <p>Last-stop arrival, trips at least 1 minute late</p>
+          </div>
+          <div class="chart-slot bare" id="route-delay-range"></div>
+        </section>
+
+        <section class="section viz-panel" aria-labelledby="profile-heading">
+          <div class="viz-head">
+            <div>
+              <h2 id="profile-heading">Delay along the route</h2>
+              <p>Median delay at each stop · band = 25th–75th percentile (seconds late)</p>
+            </div>
+            <div class="direction-toggle" role="group" aria-label="Direction">
+              <button type="button" class="chip" data-direction="inbound" aria-pressed="true">
+                Inbound
+              </button>
+              <button type="button" class="chip" data-direction="outbound" aria-pressed="false">
+                Outbound
+              </button>
+            </div>
+          </div>
+          <div id="profile-root" class="chart-slot-disabled" aria-label="Stop profile chart"></div>
+        </section>
+
+        <section class="section viz-grid two">
+          <article class="viz-panel" aria-labelledby="inject-heading">
+            <div class="viz-head">
+              <h2 id="inject-heading">Where delay is introduced</h2>
+              <p>Average extra seconds added between consecutive stops</p>
+            </div>
+            <ol class="injector-list" id="injector-list" aria-label="Delay injector list"></ol>
+          </article>
+
+          <article class="viz-panel" aria-labelledby="tod-heading">
+            <div class="viz-head">
+              <h2 id="tod-heading">Delay through the day</h2>
+              <p>Median trip delay (seconds) by weekday × departure hour</p>
+            </div>
+            <div class="heatmap" id="heatmap-root" aria-label="Time-of-day heatmap"></div>
+            <HeatmapLegend lowLabel="on time" highLabel="+4m+" />
+          </article>
+        </section>
+
+        <section class="section viz-panel" aria-labelledby="recovery-heading">
+          <div class="viz-head">
+            <h2 id="recovery-heading">Recovery vs fade</h2>
+            <p>
+              Share of trips that were &gt;2.5 min late mid-route, then finished within grace
+            </p>
+          </div>
+          <SummaryTiles tiles={RECOVERY_TILES} bare />
         </section>
 
         <section class="section" aria-labelledby="export-heading">
@@ -91,8 +157,7 @@ const resolved = routeRef ?? findRoute(route ?? "");
             <p>CSV of this slice, or the underlying Parquet month file.</p>
           </div>
           <div class="actions">
-            <a class="btn primary-signal" href={`/routes/${resolved.route}/deep/`}>Open deep dive</a>
-            <a class="btn" href="/query/">Open in query</a>
+            <a class="btn" data-query-link href={queryPageHref(resolved.route)}>Open in query</a>
             <button type="button" class="btn secondary" data-export-csv disabled>Download CSV</button>
             <a class="btn secondary" data-parquet-link href="/data/">Parquet</a>
           </div>

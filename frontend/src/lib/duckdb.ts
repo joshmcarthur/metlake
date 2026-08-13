@@ -13,7 +13,7 @@ import {
   rtParquetVirtualNameForMonth,
 } from "./manifest";
 import { splicedRoutePerformanceSql } from "./splice";
-import { ArchiveError } from "./types";
+import { ArchiveError, EMPTY_ROUTE_PERFORMANCE_MESSAGE } from "./types";
 
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
   mvp: { mainModule: duckdb_wasm, mainWorker: mvp_worker },
@@ -24,9 +24,6 @@ export const ROUTE_PERFORMANCE_VIEW = "route_performance";
 export const PUBLISHED_ROUTE_PERFORMANCE_VIEW = "route_performance_published";
 export const RT_ROUTE_PERFORMANCE_VIEW = "route_performance_rt";
 export const LATE_TRIPS_VIEW = "late_trips";
-
-const EMPTY_ROUTE_PERFORMANCE_MESSAGE =
-  "No route-performance parquet files intersect the selected period.";
 
 export type DuckDbConnection = duckdb.AsyncDuckDBConnection;
 

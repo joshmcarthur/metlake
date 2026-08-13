@@ -10,7 +10,12 @@ import {
   monthsIntersectingPeriod,
 } from "./manifest";
 import { shouldFetchRtMonths } from "./splice";
-import { ArchiveError, type DateRange, type RoutePerformanceManifest } from "./types";
+import {
+  ArchiveError,
+  EMPTY_ROUTE_PERFORMANCE_MESSAGE,
+  type DateRange,
+  type RoutePerformanceManifest,
+} from "./types";
 
 function spliceKey(publishedMonths: readonly string[], rtMonths: readonly string[]): string {
   return `${publishedMonths.join(",")}|${rtMonths.join(",")}`;
@@ -49,15 +54,15 @@ async function countPublishedDays(
 export class RoutePerformanceSession {
   private conn: DuckDbConnection | null = null;
   private registeredKey = "";
-  private manifest: RoutePerformanceManifest | null = null;
+  private manifest: RoutePerformanceManifest | null | undefined = undefined;
   private rtManifest: RoutePerformanceManifest | null | undefined = undefined;
 
   getManifest(): RoutePerformanceManifest | null {
-    return this.manifest;
+    return this.manifest ?? null;
   }
 
   /** Avoid a second manifest fetch when the caller already loaded it. */
-  primeManifest(manifest: RoutePerformanceManifest): void {
+  primeManifest(manifest: RoutePerformanceManifest | null): void {
     this.manifest = manifest;
   }
 
@@ -67,8 +72,8 @@ export class RoutePerformanceSession {
 
   private async ensureOfficialManifest(
     fetchFn: typeof fetch,
-  ): Promise<RoutePerformanceManifest> {
-    if (!this.manifest) {
+  ): Promise<RoutePerformanceManifest | null> {
+    if (this.manifest === undefined) {
       this.manifest = await fetchRoutePerformanceManifest(fetchFn);
     }
     return this.manifest;
@@ -92,10 +97,7 @@ export class RoutePerformanceSession {
     }
 
     if (publishedMonths.length === 0 && rtMonths.length === 0) {
-      throw new ArchiveError(
-        "archive-empty",
-        "No route-performance parquet files intersect the selected period.",
-      );
+      throw new ArchiveError("archive-empty", EMPTY_ROUTE_PERFORMANCE_MESSAGE);
     }
 
     const nextKey = spliceKey(publishedMonths, rtMonths);
@@ -110,7 +112,7 @@ export class RoutePerformanceSession {
   async ensureAllMonths(fetchFn: typeof fetch = fetch): Promise<DuckDbConnection> {
     const manifest = await this.ensureOfficialManifest(fetchFn);
     const rtManifest = await this.ensureRtManifest(fetchFn);
-    return this.registerSplice(manifest.months, rtManifest?.months ?? []);
+    return this.registerSplice(manifest?.months ?? [], rtManifest?.months ?? []);
   }
 
   async ensure(range: DateRange, fetchFn: typeof fetch = fetch): Promise<DuckDbConnection> {
@@ -123,7 +125,7 @@ export class RoutePerformanceSession {
     priorRange?: DateRange | null,
   ): Promise<DuckDbConnection> {
     const manifest = await this.ensureOfficialManifest(fetchFn);
-    const publishedMonths = monthsForRanges(manifest.months, range, priorRange);
+    const publishedMonths = monthsForRanges(manifest?.months ?? [], range, priorRange);
 
     if (!this.conn) {
       this.conn = await connectDuckDb();

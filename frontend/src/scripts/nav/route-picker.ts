@@ -1,4 +1,8 @@
-import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest } from "../../lib/manifest";
+import {
+  fetchRoutePerformanceManifest,
+  fetchRtRoutePerformanceManifest,
+  requireRoutePerformanceSource,
+} from "../../lib/manifest";
 import { getRouteCatalog } from "../../lib/performance";
 import { parseRouteFromPathname } from "../../lib/route-path";
 import { filterRoutes, groupRoutes, routeCode } from "../../lib/route-mode";
@@ -115,6 +119,7 @@ export async function initRoutePicker(root: HTMLElement): Promise<void> {
     try {
       const manifest = await fetchRoutePerformanceManifest();
       const rtManifest = await fetchRtRoutePerformanceManifest();
+      requireRoutePerformanceSource(manifest, rtManifest);
       session.primeManifest(manifest);
       session.primeRtManifest(rtManifest);
       const conn = await session.ensureAllMonths();

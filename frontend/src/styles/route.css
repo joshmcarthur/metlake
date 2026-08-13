@@ -23,9 +23,15 @@
 }
 
 .route-hero .desc {
-  margin: 0.4rem 0 0;
-  color: var(--ink-muted);
-  max-width: 48ch;
+  margin: 0.45rem 0 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.35;
+  max-width: 52ch;
+}
+
+.route-hero .desc:empty {
+  display: none;
 }
 
 .metric-toggle,
@@ -34,6 +40,12 @@
   flex-wrap: wrap;
   gap: 0.35rem;
   margin-top: 0.85rem;
+}
+
+.viz-head .metric-toggle,
+.viz-head .direction-toggle {
+  margin-top: 0;
+  align-self: start;
 }
 
 .injector-list {
@@ -89,34 +101,9 @@
   color: var(--warn);
 }
 
-.callout-insights {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.5rem;
-}
-
-.callout-insights li {
-  padding: 0.65rem 0.75rem;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  font-size: 0.88rem;
-}
-
-.callout-insights strong {
-  display: block;
-  font-size: 0.72rem;
-  font-family: var(--mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--transit);
-  margin-bottom: 0.2rem;
-}
-
 .compare-series {
-  opacity: 0.35;
+  opacity: 0.45;
+  stroke-dasharray: 5 4;
 }
 
 .compare-legend[hidden] {

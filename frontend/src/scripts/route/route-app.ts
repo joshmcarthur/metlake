@@ -1,5 +1,10 @@
 import { formatPeriodLabel } from "../../lib/format";
-import { fetchRoutePerformanceManifest, fetchRtRoutePerformanceManifest, monthsIntersectingPeriod } from "../../lib/manifest";
+import {
+  fetchRoutePerformanceManifest,
+  fetchRtRoutePerformanceManifest,
+  monthsIntersectingPeriod,
+  requireRoutePerformanceSource,
+} from "../../lib/manifest";
 import {
   getDailySeries,
   getRouteDailyExport,
@@ -238,8 +243,9 @@ export async function initRouteApp(): Promise<void> {
   try {
     const manifest = await fetchRoutePerformanceManifest();
     const rtManifest = await fetchRtRoutePerformanceManifest();
+    requireRoutePerformanceSource(manifest, rtManifest);
     const bounds = boundsFromManifest(
-      unionManifestMonths(manifest.months, rtManifest?.months),
+      unionManifestMonths(manifest?.months, rtManifest?.months),
     );
     session.primeManifest(manifest);
     session.primeRtManifest(rtManifest);

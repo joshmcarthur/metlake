@@ -1,5 +1,6 @@
 import {
   ArchiveError,
+  EMPTY_ROUTE_PERFORMANCE_MESSAGE,
   LATE_TRIPS_BASE,
   ROUTE_PERFORMANCE_BASE,
   RT_ROUTE_PERFORMANCE_BASE,
@@ -147,18 +148,13 @@ async function fetchMonthManifest(
   };
 }
 
-export async function fetchRoutePerformanceManifest(
-  fetchFn: typeof fetch = fetch,
-): Promise<RoutePerformanceManifest> {
-  return fetchMonthManifest(PERFORMANCE_MANIFEST_URL, "route-performance", fetchFn);
-}
-
-/** Missing late-trips derives are optional — return null instead of failing the page. */
-export async function fetchLateTripsManifest(
-  fetchFn: typeof fetch = fetch,
+async function fetchOptionalMonthManifest(
+  url: string,
+  label: string,
+  fetchFn: typeof fetch,
 ): Promise<RoutePerformanceManifest | null> {
   try {
-    return await fetchMonthManifest(LATE_TRIPS_MANIFEST_URL, "late-trips", fetchFn);
+    return await fetchMonthManifest(url, label, fetchFn);
   } catch (error) {
     if (
       error instanceof ArchiveError &&
@@ -167,6 +163,34 @@ export async function fetchLateTripsManifest(
       return null;
     }
     throw error;
+  }
+}
+
+/** Missing official route-performance is optional — splice RT-only when it 404s or is empty. */
+export async function fetchRoutePerformanceManifest(
+  fetchFn: typeof fetch = fetch,
+): Promise<RoutePerformanceManifest | null> {
+  return fetchOptionalMonthManifest(
+    PERFORMANCE_MANIFEST_URL,
+    "route-performance",
+    fetchFn,
+  );
+}
+
+/** Missing late-trips derives are optional — return null instead of failing the page. */
+export async function fetchLateTripsManifest(
+  fetchFn: typeof fetch = fetch,
+): Promise<RoutePerformanceManifest | null> {
+  return fetchOptionalMonthManifest(LATE_TRIPS_MANIFEST_URL, "late-trips", fetchFn);
+}
+
+/** Throw archive-empty only when neither official nor RT months are available. */
+export function requireRoutePerformanceSource(
+  official: RoutePerformanceManifest | null,
+  rt: RoutePerformanceManifest | null,
+): void {
+  if (!official && !rt) {
+    throw new ArchiveError("archive-empty", EMPTY_ROUTE_PERFORMANCE_MESSAGE);
   }
 }
 
@@ -174,19 +198,9 @@ export async function fetchLateTripsManifest(
 export async function fetchRtRoutePerformanceManifest(
   fetchFn: typeof fetch = fetch,
 ): Promise<RoutePerformanceManifest | null> {
-  try {
-    return await fetchMonthManifest(
-      RT_ROUTE_PERFORMANCE_MANIFEST_URL,
-      "rt-route-performance",
-      fetchFn,
-    );
-  } catch (error) {
-    if (
-      error instanceof ArchiveError &&
-      (error.kind === "manifest-not-found" || error.kind === "archive-empty")
-    ) {
-      return null;
-    }
-    throw error;
-  }
+  return fetchOptionalMonthManifest(
+    RT_ROUTE_PERFORMANCE_MANIFEST_URL,
+    "rt-route-performance",
+    fetchFn,
+  );
 }

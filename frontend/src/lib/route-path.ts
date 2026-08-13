@@ -1,9 +1,9 @@
 /** Prerendered shell served for routes not built at compile time. */
 export const ROUTE_SHELL_ID = "__any__";
 
-const ROUTE_PATH_RE = /^\/routes\/([^/]+)(?:\/deep\/?)?\/?$/;
+const ROUTE_PATH_RE = /^\/routes\/([^/]+)\/?$/;
 
-/** Extract route id from `/routes/{id}/` or `/routes/{id}/deep/`. */
+/** Extract route id from `/routes/{id}/`. */
 export function parseRouteFromPathname(pathname = window.location.pathname): string | null {
   const match = pathname.match(ROUTE_PATH_RE);
   return match?.[1] ?? null;
@@ -13,7 +13,7 @@ export function parseRouteFromPathname(pathname = window.location.pathname): str
 export function routeIdFromDocument(root: HTMLElement): string {
   const fromPath = parseRouteFromPathname();
   if (fromPath && fromPath !== ROUTE_SHELL_ID) {
-    return fromPath;
+    return decodeURIComponent(fromPath);
   }
 
   const fromData = root.dataset.route ?? "";
@@ -21,5 +21,5 @@ export function routeIdFromDocument(root: HTMLElement): string {
     return fromData;
   }
 
-  return fromPath ?? fromData;
+  return fromPath && fromPath !== ROUTE_SHELL_ID ? decodeURIComponent(fromPath) : fromData;
 }
