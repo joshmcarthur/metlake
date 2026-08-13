@@ -1,3 +1,10 @@
+import { directionIdFromChip, ensureAnatomyViews } from "../../lib/anatomy";
+import {
+  routeHourHeatSql,
+  routeInjectorsSql,
+  routeStopProfileSql,
+} from "../../lib/anatomy-sql";
+import type { DuckDbConnection } from "../../lib/duckdb";
 import { formatPeriodLabel } from "../../lib/format";
 import {
   fetchRoutePerformanceManifest,
@@ -15,7 +22,12 @@ import {
 } from "../../lib/performance";
 import { routeIdFromDocument } from "../../lib/route-path";
 import { queryPageHref } from "../../lib/site";
-import { isArchiveError, type PeriodSummary, type RouteDailyPoint } from "../../lib/types";
+import {
+  isArchiveError,
+  type DateRange,
+  type PeriodSummary,
+  type RouteDailyPoint,
+} from "../../lib/types";
 import {
   bindPeriodControls,
   boundsFromManifest,
@@ -50,6 +62,8 @@ let commentaryPanel: ReturnType<typeof mountCommentaryPanel> | null = null;
 let currentDirection: Direction = "inbound";
 let cachedSummary: PeriodSummary | null = null;
 let cachedPrior: PeriodSummary | null = null;
+let cachedAnatomyConn: DuckDbConnection | null = null;
+let cachedAnatomyRange: DateRange | null = null;
 
 function showEmpty(message: string): void {
   const empty = document.getElementById("route-empty");
@@ -68,16 +82,91 @@ function showContent(): void {
   document.getElementById("route-content")?.removeAttribute("hidden");
 }
 
-function renderDelayAnatomy(): void {
+async function renderDelayAnatomy(
+  conn: DuckDbConnection | null,
+  range: DateRange | null,
+  route: string,
+  direction: Direction,
+): Promise<void> {
   const root = document.getElementById("route-root");
   if (!root) return;
 
   const profile = root.querySelector<HTMLElement>("#profile-root");
   const injectors = root.querySelector<HTMLElement>("#injector-list");
   const heatmap = root.querySelector<HTMLElement>("#heatmap-root");
-  if (profile) renderStopProfile(profile);
-  if (injectors) renderInjectors(injectors);
-  if (heatmap) renderHourHeatmap(heatmap);
+
+  if (!conn || !range) {
+    if (profile) renderStopProfile(profile, []);
+    if (injectors) renderInjectors(injectors, []);
+    if (heatmap) renderHourHeatmap(heatmap, []);
+    return;
+  }
+
+  const directionId = directionIdFromChip(direction);
+  const flags = await ensureAnatomyViews(conn, range);
+
+  if (profile) {
+    if (!flags.profile) {
+      renderStopProfile(profile, []);
+    } else {
+      const table = await conn.query(
+        routeStopProfileSql(route, range.from, range.to, directionId),
+      );
+      renderStopProfile(
+        profile,
+        table.toArray().map((row) => ({
+          stop_name: row.stop_name == null ? null : String(row.stop_name),
+          stop_sequence:
+            row.stop_sequence == null ? null : Number(row.stop_sequence),
+          median_delay_seconds:
+            row.median_delay_seconds == null
+              ? null
+              : Number(row.median_delay_seconds),
+        })),
+      );
+    }
+  }
+
+  if (injectors) {
+    if (!flags.injectors) {
+      renderInjectors(injectors, []);
+    } else {
+      const table = await conn.query(
+        routeInjectorsSql(route, range.from, range.to, directionId),
+      );
+      renderInjectors(
+        injectors,
+        table.toArray().map((row) => ({
+          from_stop_name:
+            row.from_stop_name == null ? null : String(row.from_stop_name),
+          to_stop_name:
+            row.to_stop_name == null ? null : String(row.to_stop_name),
+          delay_added:
+            row.delay_added == null ? null : Number(row.delay_added),
+          n_trips: Number(row.n_trips),
+        })),
+      );
+    }
+  }
+
+  if (heatmap) {
+    if (!flags.hourHeat) {
+      renderHourHeatmap(heatmap, []);
+    } else {
+      const table = await conn.query(
+        routeHourHeatSql(route, range.from, range.to, directionId),
+      );
+      renderHourHeatmap(
+        heatmap,
+        table.toArray().map((row) => ({
+          weekday: Number(row.weekday),
+          hour: Number(row.hour),
+          delay_seconds:
+            row.delay_seconds == null ? null : Number(row.delay_seconds),
+        })),
+      );
+    }
+  }
 }
 
 function updateRouteBrief(): void {
@@ -187,7 +276,9 @@ async function refreshRoute(
     cachedCompare = state.compare;
     updateRouteBrief();
     rerenderSeriesForMetric();
-    renderDelayAnatomy();
+    cachedAnatomyConn = conn;
+    cachedAnatomyRange = state.range;
+    await renderDelayAnatomy(conn, state.range, routeId, currentDirection);
 
     const delayRoot = document.getElementById("route-delay-range");
     if (delayRoot) void renderDelayRangeForPeriod(delayRoot, conn, state.range, routeId);
@@ -262,10 +353,15 @@ export async function initRouteApp(): Promise<void> {
 
     bindDirectionToggle(root, (direction) => {
       currentDirection = direction;
-      renderDelayAnatomy();
+      void renderDelayAnatomy(
+        cachedAnatomyConn,
+        cachedAnatomyRange,
+        routeId,
+        currentDirection,
+      );
       updateRouteBrief();
     });
-    renderDelayAnatomy();
+    void renderDelayAnatomy(null, null, routeId, currentDirection);
 
     bindPeriodControls(periodEls, bounds, (state) => {
       currentPeriod = state;

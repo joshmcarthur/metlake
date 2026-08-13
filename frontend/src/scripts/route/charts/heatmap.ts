@@ -1,5 +1,8 @@
-import { renderRtEmptyState } from "./empty-state";
+import {
+  renderNetworkHourHeat,
+  type HourHeatCell,
+} from "../../overview/charts/hour-heat.ts";
 
-export function renderHourHeatmap(root: HTMLElement): void {
-  renderRtEmptyState(root, "heatmap chart-slot-disabled");
+export function renderHourHeatmap(root: HTMLElement, cells: HourHeatCell[]): void {
+  renderNetworkHourHeat(root, cells);
 }

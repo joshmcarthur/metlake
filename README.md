@@ -86,6 +86,8 @@ DATE=2026-08-12 ./scripts/project-performance-day.sh
 MONTH=2026-08 ./scripts/derive-route-performance.sh
 MONTH=2026-08 ./scripts/derive-trip-performance.sh
 MONTH=2026-08 ./scripts/derive-rt-route-performance.sh
+MONTH=2026-08 ./scripts/derive-stop-delay.sh
+MONTH=2026-08 ./scripts/derive-stop-anatomy.sh
 
 ./scripts/status.sh
 ```

@@ -1,7 +1,7 @@
-export const RT_DERIVE_NOTE =
-  "Needs RT derives — trip-update aggregates are not published yet.";
+export const ANATOMY_EMPTY_NOTE =
+  "No trip-update delay data for this period.";
 
-export function renderRtEmptyState(root: HTMLElement, className: string): void {
+export function renderAnatomyEmptyState(root: HTMLElement, className: string): void {
   root.className = className;
-  root.innerHTML = `<p class="rt-stub-note">${RT_DERIVE_NOTE}</p>`;
+  root.innerHTML = `<p class="rt-stub-note">${ANATOMY_EMPTY_NOTE}</p>`;
 }

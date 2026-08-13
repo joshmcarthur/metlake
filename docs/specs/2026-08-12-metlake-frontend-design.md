@@ -34,7 +34,7 @@ See also [`2026-08-13-route-picker-dialog-design.md`](./2026-08-13-route-picker-
 | UI surface | Primary data |
 | --- | --- |
 | Overview scorecard, route scorecard, calendar, peak gap, cancellations | `derived/route-performance/*.parquet` (+ `_manifest.json`); may include RT-estimated days from `derived/rt-route-performance/` when the published CSV has no row |
-| Network/route hour heat, stop profile, injectors, corridors | New derives from GTFS-RT trip updates + static GTFS (phase after scorecard) |
+| Network/route hour heat, stop profile, injectors, corridors | `derived/stop-profile`, `derived/delay-injectors`, `derived/hour-heat` (from `stop-delay` census; sampled spine) |
 | `/data/` listing | Full `$ARCHIVE_ROOT` browse; UI features `curated/` + `derived/` |
 
 ## Serving
