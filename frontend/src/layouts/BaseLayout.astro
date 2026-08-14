@@ -2,6 +2,7 @@
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiblingNote from "../components/SiblingNote.astro";
+import { BRAND_TAGLINE } from "../lib/site";
 import type { AttributionKey, NavKey } from "../lib/site";
 import "../styles/global.css";
 
@@ -15,7 +16,7 @@ interface Props {
 
 const {
   title,
-  description = "Historical Metlink performance you can explore, compare, and download.",
+  description = BRAND_TAGLINE,
   current,
   showSiblingNote = false,
   attribution = "network",
