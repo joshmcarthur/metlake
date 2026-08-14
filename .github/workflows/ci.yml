@@ -80,6 +80,7 @@ jobs:
         run: |
           set -euo pipefail
           npm ci
+          npm test
           npm run build
 
   dependabot-automerge:
