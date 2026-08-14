@@ -1,5 +1,7 @@
 # Inline route picker (2026-08-12)
 
+Superseded by [`2026-08-13-route-picker-dialog-design.md`](./2026-08-13-route-picker-dialog-design.md).
+
 ## Goal
 
 Replace fixed “Route 83” / “Route deep” primary-nav links with an **inline typeahead** so any archive route can be opened.
