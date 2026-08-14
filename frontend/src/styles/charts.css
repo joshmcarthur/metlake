@@ -119,13 +119,22 @@
 
 @media (min-width: 900px) {
   .viz-grid.two {
-    grid-template-columns: 1.15fr 0.85fr;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
     align-items: start;
   }
+
+  .viz-grid.two.delay-anatomy-grid {
+    grid-template-columns: minmax(16rem, 0.85fr) minmax(0, 1.25fr);
+  }
+}
+
+.viz-grid.two > .viz-panel {
+  min-width: 0;
 }
 
 .heatmap {
   width: 100%;
+  min-width: 0;
   overflow-x: auto;
 }
 

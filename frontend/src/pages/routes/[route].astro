@@ -122,19 +122,23 @@ const resolved = routeRef ?? findRoute(route ?? "");
           <div id="profile-root" class="chart-slot-disabled" aria-label="Stop profile chart"></div>
         </section>
 
-        <section class="section viz-grid two">
+        <section class="section viz-grid two delay-anatomy-grid">
           <article class="viz-panel" aria-labelledby="inject-heading">
             <div class="viz-head">
-              <h2 id="inject-heading">Where delay is introduced</h2>
-              <p>Average extra seconds added between consecutive stops</p>
+              <div>
+                <h2 id="inject-heading">Where delay is introduced</h2>
+                <p>Average extra seconds added between consecutive stops</p>
+              </div>
             </div>
             <ol class="injector-list" id="injector-list" aria-label="Delay injector list"></ol>
           </article>
 
           <article class="viz-panel" aria-labelledby="tod-heading">
             <div class="viz-head">
-              <h2 id="tod-heading">Delay through the day</h2>
-              <p>Median trip delay (seconds) by weekday × departure hour</p>
+              <div>
+                <h2 id="tod-heading">Delay through the day</h2>
+                <p>Median trip delay (seconds) by weekday × departure hour</p>
+              </div>
             </div>
             <div class="heatmap" id="heatmap-root" aria-label="Time-of-day heatmap"></div>
             <HeatmapLegend lowLabel="on time" highLabel="+4m+" />

@@ -35,8 +35,7 @@ export function renderInjectors(root: HTMLElement, rows: RouteInjectorRow[]): vo
       const to = stopLabel(row.to_stop_name);
       const delay =
         row.delay_added === null ? "—" : formatDelayAdded(row.delay_added);
-      const meta = `${delay} · ${row.n_trips} trips`;
-      return `<li><div class="injector-seg">${from} → ${to}</div><div class="injector-val">${meta}</div></li>`;
+      return `<li><div class="injector-seg">${from}<span>→ ${to}</span></div><div class="injector-val">${delay}<span>${row.n_trips} trips</span></div></li>`;
     })
     .join("");
 

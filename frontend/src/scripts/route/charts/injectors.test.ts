@@ -23,7 +23,8 @@ test("renders injector list without route count", () => {
       n_trips: 10,
     },
   ]);
-  assert.match(root.innerHTML, /\+45s · 10 trips/);
+  assert.match(root.innerHTML, /\+45s/);
+  assert.match(root.innerHTML, /<span>10 trips<\/span>/);
   assert.doesNotMatch(root.innerHTML, /routes/);
 });
 
@@ -52,6 +53,7 @@ test("formats negative delay without a leading plus", () => {
       n_trips: 3,
     },
   ]);
-  assert.match(root.innerHTML, /-12s · 3 trips/);
+  assert.match(root.innerHTML, /-12s/);
+  assert.match(root.innerHTML, /<span>3 trips<\/span>/);
   assert.doesNotMatch(root.innerHTML, /\+-12s/);
 });

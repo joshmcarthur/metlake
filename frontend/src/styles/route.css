@@ -99,6 +99,16 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--warn);
+  text-align: right;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.injector-val span {
+  display: block;
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--ink-muted);
 }
 
 .compare-series {
