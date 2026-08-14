@@ -22,3 +22,6 @@ archive/
 # Test scratch
 /tmp/
 tests/tmp/
+
+# Linked git worktrees
+.worktrees/
