@@ -49,7 +49,7 @@ export function buildNetworkBrief(
         }
       : null,
     best_punctuality: leaderboardRows(best),
-    needs_attention: leaderboardRows(attention),
+    lowest_punctuality: leaderboardRows(attention),
     note: "Figures are Metlink published bus performance metrics, not live vehicle delays.",
   };
 
@@ -91,7 +91,8 @@ export function buildRouteBrief(
   return {
     title: `Route ${routeId} commentary`,
     scope: "route",
-    fallbackKey: routeId === "83" ? "route83" : "route",
+    // Always derive sample text from the live brief — never a stale canned route.
+    fallbackKey: "route",
     stats,
   };
 }

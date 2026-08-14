@@ -141,6 +141,60 @@ main {
 
 .ai-rail {
   min-width: 0;
+  padding-inline-start: 0.85rem;
+  border-inline-start: 1px solid color-mix(in srgb, var(--transit) 28%, var(--line));
+}
+
+.ai-rail__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.55rem;
+  margin: 0 0 0.45rem;
+}
+
+.ai-rail__label {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.ai-rail__cue {
+  display: none;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  opacity: 0.85;
+}
+
+.ai-rail[data-ai-state="waiting"] .ai-rail__cue,
+.ai-rail[data-ai-state="streaming"] .ai-rail__cue {
+  display: inline-flex;
+}
+
+.ai-rail[data-ai-state="waiting"] .ai-rail__cue::before,
+.ai-rail[data-ai-state="streaming"] .ai-rail__cue::before {
+  content: "Writing";
+}
+
+.ai-rail[data-ai-state="waiting"] .ai-rail__cue::after,
+.ai-rail[data-ai-state="streaming"] .ai-rail__cue::after {
+  content: "...";
+  display: inline-block;
+  width: 1.1em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ai-rail[data-ai-state="ready"] .ai-rail__cue {
+  display: none;
 }
 
 .ai-rail .ai-commentary,
@@ -153,48 +207,41 @@ main {
 }
 
 .page-with-rail {
-  width: min(100% - 1.75rem, var(--max));
-  margin-inline: auto;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  anchor-scope: --page-main;
 }
 
 .page-with-rail > .page-main {
   min-width: 0;
   width: 100%;
+  order: 1;
+  anchor-name: --page-main;
 }
 
-/* On narrow viewports keep commentary after the scorecard so generation
-   never pushes tiles/charts down while streaming. */
+/* In-flow after the scorecard when anchor positioning is unavailable,
+   so generation never pushes tiles/charts down while streaming. */
 .page-with-rail > .ai-rail {
   order: 2;
 }
 
-.page-with-rail > .page-main {
-  order: 1;
-}
-
-@media (min-width: 1180px) {
-  .page-with-rail {
-    --ai-rail: 17.5rem;
-    width: min(100% - 1.75rem, calc(var(--max) + var(--ai-rail) + 1.5rem));
-    display: grid;
-    grid-template-columns: minmax(0, var(--max)) var(--ai-rail);
-    column-gap: 1.5rem;
-    align-items: start;
-  }
-
-  .page-with-rail > .page-main,
-  .page-with-rail > .ai-rail {
-    order: initial;
-  }
-
-  .page-with-rail > .ai-rail {
-    position: sticky;
-    top: 1rem;
-    /* Sit beside the period block rather than the very top of the page. */
-    margin-top: 5.5rem;
+@supports (position-area: inline-end) {
+  @media (min-width: 105rem) {
+    .page-with-rail > .ai-rail {
+      position: fixed;
+      position-anchor: --page-main;
+      position-area: inline-end center;
+      justify-self: unsafe start;
+      align-self: unsafe start;
+      margin: 0;
+      margin-block-start: 1.25rem;
+      margin-inline-start: 1rem;
+      width: 17.5rem;
+      max-height: calc(100dvh - 3.25rem);
+      overflow: auto;
+      z-index: 2;
+    }
   }
 }
 
@@ -211,6 +258,11 @@ main {
   .tile:nth-child(4) {
     animation-delay: 0.12s;
   }
+
+  .ai-rail[data-ai-state="waiting"] .ai-rail__cue::after,
+  .ai-rail[data-ai-state="streaming"] .ai-rail__cue::after {
+    animation: ai-rail-ellipsis 1.2s steps(4, end) infinite;
+  }
 }
 
 @keyframes rise {
@@ -221,5 +273,14 @@ main {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes ai-rail-ellipsis {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 1.1em;
   }
 }

@@ -83,7 +83,7 @@ export async function generateCommentary(
       { role: "system", content: COMMENTARY_SYSTEM_PROMPT },
       {
         role: "user",
-        content: `${formatBrief(brief.stats)}\n\nWrite commentary for this ${scopeLabel(brief.scope)}.`,
+        content: `${formatBrief(brief.stats)}\n\nCaption what these ${scopeLabel(brief.scope)} stats communicate. Do not recommend riding the route.`,
       },
     ],
     monitor(monitor) {
@@ -98,7 +98,7 @@ export async function generateCommentary(
   });
 
   try {
-    const stream = session.promptStreaming("Go ahead with the commentary now.", {
+    const stream = session.promptStreaming("Write the caption now.", {
       signal: options.signal,
     });
     let text = "";

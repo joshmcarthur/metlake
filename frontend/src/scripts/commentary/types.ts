@@ -1,6 +1,6 @@
 export type CommentaryScope = "network" | "route";
 
-export type FallbackKey = "network" | "route" | "route83";
+export type FallbackKey = "network" | "route";
 
 export interface RoutePunctualityRow {
   route: string;
@@ -21,7 +21,7 @@ export interface NetworkBriefStats {
     cancellations_pp: number | null;
   } | null;
   best_punctuality: RoutePunctualityRow[];
-  needs_attention: RoutePunctualityRow[];
+  lowest_punctuality: RoutePunctualityRow[];
   note: string;
 }
 
