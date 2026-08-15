@@ -151,11 +151,13 @@ GitHub Actions runs lint, smoke, and a frontend build on every pull request and 
 
 [Release Please](https://github.com/googleapis/release-please) opens release PRs from conventional commits and maintains `CHANGELOG.md`.
 
-When a release lands on `main`, CI builds a multi-arch image and pushes to GitHub Container Registry:
+When a release lands on `main`, CI builds multi-arch images for the capture appliance and the frontend and pushes them to GitHub Container Registry:
 
 ```bash
 docker pull ghcr.io/<owner>/metlake:latest
+docker pull ghcr.io/<owner>/metlake/frontend:latest
 # or a version tag, e.g. ghcr.io/<owner>/metlake:v1.2.3
+#                       ghcr.io/<owner>/metlake/frontend:v1.2.3
 ```
 
 Dependabot opens weekly PRs for GitHub Actions and Docker base-image updates. After lint and smoke pass, patch and minor Dependabot PRs are squash-merged by a follow-on job in the same workflow.

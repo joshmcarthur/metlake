@@ -31,10 +31,20 @@ jobs:
           manifest-file: .release-please-manifest.json
 
   publish-image:
-    name: Publish Docker image
+    name: Publish ${{ matrix.name }} image
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: appliance
+            context: .
+            image_suffix: ""
+          - name: frontend
+            context: ./frontend
+            image_suffix: /frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -58,7 +68,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}${{ matrix.image_suffix }}
           tags: |
             type=raw,value=latest
             type=raw,value=${{ needs.release-please.outputs.tag_name }}
@@ -69,10 +79,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
-          context: .
+          context: ${{ matrix.context }}
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}

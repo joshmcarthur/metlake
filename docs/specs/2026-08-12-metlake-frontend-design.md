@@ -53,5 +53,5 @@ Inject a **compact JSON stats brief** (aggregates already shown in the UI) into 
 ## Out of scope (v1 product)
 
 - Live MissingLink-style sit-reps as the primary UX
-- S3/R2 sync, GHCR publish of frontend image
+- S3/R2 sync
 - Teaching “what is a data lake” in the UI
