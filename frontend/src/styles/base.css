@@ -210,38 +210,46 @@ main {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  anchor-scope: --page-main;
 }
 
 .page-with-rail > .page-main {
   min-width: 0;
   width: 100%;
   order: 1;
-  anchor-name: --page-main;
 }
 
-/* In-flow after the scorecard when anchor positioning is unavailable,
-   so generation never pushes tiles/charts down while streaming. */
+/* After the scorecard on narrow viewports so generation never pushes
+   tiles/charts down while streaming. */
 .page-with-rail > .ai-rail {
   order: 2;
 }
 
-@supports (position-area: inline-end) {
-  @media (min-width: 105rem) {
-    .page-with-rail > .ai-rail {
-      position: fixed;
-      position-anchor: --page-main;
-      position-area: inline-end center;
-      justify-self: unsafe start;
-      align-self: unsafe start;
-      margin: 0;
-      margin-block-start: 1.25rem;
-      margin-inline-start: 1rem;
-      width: 17.5rem;
-      max-height: calc(100dvh - 3.25rem);
-      overflow: auto;
-      z-index: 2;
-    }
+/* Widen header/footer wraps to the same max as main+rail so the scorecard
+   left edge matches the nav, instead of centering a wider content cluster. */
+@media (min-width: 74rem) {
+  body:has(.page-with-rail) .wrap {
+    width: min(100% - 1.75rem, calc(var(--max) + var(--ai-rail) + var(--ai-rail-gap)));
+  }
+
+  .page-with-rail {
+    display: grid;
+    grid-template-columns: minmax(0, var(--max)) var(--ai-rail);
+    column-gap: var(--ai-rail-gap);
+    align-items: start;
+  }
+
+  .page-with-rail > .page-main,
+  .page-with-rail > .ai-rail {
+    order: initial;
+    width: auto;
+  }
+
+  .page-with-rail > .ai-rail {
+    position: sticky;
+    top: 1rem;
+    margin-top: 1.25rem;
+    max-height: calc(100dvh - 3.25rem);
+    overflow: auto;
   }
 }
 

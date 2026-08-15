@@ -21,6 +21,8 @@
   --font: "DM Sans", system-ui, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, monospace;
   --max: 1080px;
+  --ai-rail: 17.5rem;
+  --ai-rail-gap: 1.5rem;
   --radius: 6px;
 
   /* Sequential ramp for punctuality / delay heat cells. */
