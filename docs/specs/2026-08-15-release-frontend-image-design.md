@@ -24,6 +24,7 @@ The nested name `…/metlake/frontend` is a second package under the same GitHub
 - `fail-fast: false` so one failing leg does not cancel a push already in flight. The job still fails if either image does not publish.
 - GHA build cache scoped per matrix entry (`scope` from the matrix name) so the two contexts do not overwrite each other.
 - Frontend `context` is `./frontend` (its Dockerfile, not the repo root).
+- Frontend Dockerfile pins the Node build stage to `$BUILDPLATFORM`. Dist is static; running `astro build` under QEMU for `linux/arm64` panics in the Go WASM compiler. The Caddy runtime stage still targets each platform.
 
 Release Please, changelog, and the appliance Dockerfile are unchanged.
 
