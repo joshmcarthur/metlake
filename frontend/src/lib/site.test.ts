@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { queryPageHref, routeFromQuerySearch } from "./site.ts";
+import { queryPageHref, replayPageHref, routeFromQuerySearch } from "./site.ts";
 
 test("queryPageHref includes the selected route", () => {
   assert.equal(queryPageHref("1"), "/query/?route=1");
@@ -28,4 +28,18 @@ test("routeFromQuerySearch ignores a missing or blank route", () => {
   assert.equal(routeFromQuerySearch("?foo=bar"), undefined);
   assert.equal(routeFromQuerySearch("?route="), undefined);
   assert.equal(routeFromQuerySearch("?route=%20"), undefined);
+});
+
+test("replayPageHref includes the selected period", () => {
+  assert.equal(
+    replayPageHref({ from: "2026-08-01", to: "2026-08-14" }),
+    "/replay/?from=2026-08-01&to=2026-08-14",
+  );
+});
+
+test("replayPageHref can reserve a route filter param", () => {
+  assert.equal(
+    replayPageHref({ from: "2026-08-01", to: "2026-08-14", route: "110" }),
+    "/replay/?from=2026-08-01&to=2026-08-14&route=110",
+  );
 });

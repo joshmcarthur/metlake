@@ -1,0 +1,176 @@
+.replay-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: min(100% - 1.75rem, 1200px);
+  margin: 1rem auto 2.5rem;
+}
+
+.replay-chrome {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  align-items: flex-end;
+}
+
+.replay-chrome h1 {
+  margin: 0.15rem 0 0.25rem;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.replay-chrome .desc {
+  margin: 0;
+  color: var(--ink-muted);
+  max-width: 36rem;
+}
+
+.replay-clock {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--transit-deep);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.75rem;
+}
+
+.replay-status {
+  color: var(--ink-muted);
+  font-size: 0.88rem;
+}
+
+.replay-stage {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #cfd8d4;
+  min-height: min(70vh, 640px);
+  box-shadow: var(--shadow);
+}
+
+.replay-map {
+  width: 100%;
+  height: min(70vh, 640px);
+}
+
+.replay-card {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: min(18rem, calc(100% - 1.5rem));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem 1rem;
+  box-shadow: var(--shadow);
+  z-index: 2;
+}
+
+.replay-card h2 {
+  margin: 0.15rem 0 0.65rem;
+  font-size: 1.2rem;
+}
+
+.replay-card-close {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.replay-card-meta {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 0.85rem;
+}
+
+.replay-card-meta div {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+}
+
+.replay-card-meta dt {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.replay-card-meta dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.replay-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 0.85rem;
+}
+
+.replay-scrub {
+  flex: 1 1 14rem;
+  display: flex;
+  min-width: 10rem;
+}
+
+.replay-scrub input[type="range"] {
+  width: 100%;
+  accent-color: var(--transit);
+}
+
+.replay-speeds {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.replay-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.85rem;
+  margin: 0;
+}
+
+.replay-swatch {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  margin-right: 0.2rem;
+  vertical-align: middle;
+  box-shadow: 0 0 0 1px rgb(19 40 51 / 15%);
+}
+
+.replay-swatch.live {
+  background: var(--live);
+}
+
+.replay-swatch.warn {
+  background: var(--warn);
+}
+
+.replay-swatch.bad {
+  background: var(--bad);
+}
+
+.replay-swatch.unknown {
+  background: var(--ink-muted);
+}
+
+/* MapLibre attribution stays readable on the dark stage */
+.replay-map .maplibregl-ctrl-attrib {
+  font-size: 0.7rem;
+}

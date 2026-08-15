@@ -1,0 +1,77 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/replay.css";
+---
+
+<BaseLayout
+  title="Map replay — Metlake"
+  description="Replay historical Metlink vehicle positions from the archive."
+  current="replay"
+  attribution="deep"
+>
+  <div class="replay-page" id="replay-root">
+    <header class="replay-chrome">
+      <div class="replay-chrome-copy">
+        <p class="eyebrow">Historical map</p>
+        <h1>Replay</h1>
+        <p class="desc">
+          Vehicle positions from the archive (~every 5 minutes). Not a live board.
+        </p>
+      </div>
+      <p class="replay-clock" data-replay-clock aria-live="polite">Loading…</p>
+    </header>
+
+    <div class="replay-status" data-replay-status role="status">Loading archive…</div>
+
+    <div class="replay-stage">
+      <div id="replay-map" class="replay-map" role="img" aria-label="Wellington network map"></div>
+
+      <aside class="replay-card" data-replay-card hidden>
+        <button type="button" class="replay-card-close" data-replay-card-close aria-label="Close">
+          Close
+        </button>
+        <p class="eyebrow">Vehicle</p>
+        <h2 data-card-route>—</h2>
+        <dl class="replay-card-meta">
+          <div>
+            <dt>Trip</dt>
+            <dd data-card-trip>—</dd>
+          </div>
+          <div>
+            <dt>Delay</dt>
+            <dd data-card-delay>—</dd>
+          </div>
+          <div>
+            <dt>Vehicle</dt>
+            <dd data-card-vehicle>—</dd>
+          </div>
+        </dl>
+        <a class="btn secondary" data-card-route-link href="/routes/">Open route</a>
+      </aside>
+    </div>
+
+    <div class="replay-controls" aria-label="Playback">
+      <button type="button" class="btn primary-signal" data-replay-play aria-pressed="false">
+        Play
+      </button>
+      <label class="replay-scrub">
+        <span class="visually-hidden">Time</span>
+        <input type="range" data-replay-scrub min="0" max="0" value="0" step="1" />
+      </label>
+      <div class="replay-speeds" role="group" aria-label="Playback speed">
+        <button type="button" class="chip" data-replay-speed="1" aria-pressed="true">1×</button>
+        <button type="button" class="chip" data-replay-speed="4" aria-pressed="false">4×</button>
+        <button type="button" class="chip" data-replay-speed="16" aria-pressed="false">16×</button>
+      </div>
+    </div>
+
+    <p class="note replay-legend">
+      <span class="replay-swatch live"></span> ≤2.5 min
+      <span class="replay-swatch warn"></span> 2.5–5 min
+      <span class="replay-swatch bad"></span> &gt;5 min
+      <span class="replay-swatch unknown"></span> unknown
+    </p>
+  </div>
+
+  <script src="../scripts/replay/replay-app.ts"></script>
+</BaseLayout>

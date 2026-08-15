@@ -162,6 +162,7 @@ const resolved = routeRef ?? findRoute(route ?? "");
           </div>
           <div class="actions">
             <a class="btn" data-query-link href={queryPageHref(resolved.route)}>Open in query</a>
+            <a class="btn" data-replay-link href="/replay/" hidden>Replay on map</a>
             <button type="button" class="btn secondary" data-export-csv disabled>Download CSV</button>
             <a class="btn secondary" data-parquet-link href="/data/">Parquet</a>
           </div>

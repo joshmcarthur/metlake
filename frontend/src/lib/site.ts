@@ -17,13 +17,32 @@ export function routeFromQuerySearch(search: string): string | undefined {
   return route || undefined;
 }
 
+/** Historical map replay URL for an Overview (or custom) period. */
+export function replayPageHref(opts: {
+  from: string;
+  to: string;
+  t?: string;
+  /** Reserved for a later route filter; ignored by replay today. */
+  route?: string;
+}): string {
+  const params = new URLSearchParams();
+  params.set("from", opts.from);
+  params.set("to", opts.to);
+  if (opts.t) params.set("t", opts.t);
+  const route = opts.route?.trim();
+  if (route && route !== "__any__") {
+    params.set("route", route);
+  }
+  return `/replay/?${params.toString()}`;
+}
+
 /** Archive files are served by Caddy from the mounted archive, outside the Astro build. */
 export const DATA_ROOT = "/data/";
 
 export const BRAND_TAGLINE =
   "Open-source data lake of historical Metlink performance data you can explore, compare and download.";
 
-export type NavKey = "overview" | "route" | "query";
+export type NavKey = "overview" | "route" | "query" | "replay";
 
 export interface NavItem {
   key: NavKey;
@@ -35,6 +54,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { key: "overview", label: "Overview", href: "/" },
   { key: "query", label: "Query", href: "/query/" },
+  { key: "replay", label: "Replay", href: "/replay/" },
 ];
 
 export type AttributionKey = keyof typeof ATTRIBUTION;

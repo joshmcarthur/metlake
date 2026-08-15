@@ -22,6 +22,7 @@ import { renderPunctualityCalendar } from "./charts/calendar";
 import { renderChokePoints } from "./charts/choke-points";
 import { renderCancellationsChart } from "./charts/cancellations";
 import { renderNetworkHourHeat } from "./charts/hour-heat";
+import { replayPageHref } from "../../lib/site";
 import {
   bindPeriodControls,
   boundsFromManifest,
@@ -80,6 +81,15 @@ async function refreshPeriod(
       state.range.to,
       estimated,
     );
+
+    const replayLink = document.querySelector<HTMLAnchorElement>("[data-replay-link]");
+    if (replayLink) {
+      replayLink.href = replayPageHref({
+        from: state.range.from,
+        to: state.range.to,
+      });
+      replayLink.hidden = false;
+    }
 
     const [summary, prior, best, attention, daily] = await Promise.all([
       getPeriodSummary(conn, state.range),

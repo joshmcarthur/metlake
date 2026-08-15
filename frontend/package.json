@@ -16,6 +16,8 @@
     "typescript": "^5.7.0"
   },
   "dependencies": {
-    "@duckdb/duckdb-wasm": "^1.29.0"
+    "@duckdb/duckdb-wasm": "^1.29.0",
+    "maplibre-gl": "^6.3.0",
+    "pmtiles": "^4.5.0"
   }
 }

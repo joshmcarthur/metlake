@@ -58,7 +58,7 @@ open http://localhost:8080
 
 Browse files at [http://localhost:8080/data/](http://localhost:8080/data/). The archive mount uses the same host path as the appliance: `${METLAKE_ARCHIVE_HOST_PATH:-./archive}:/data:ro`.
 
-Use **Select a route** in the header to open any published route scorecard.
+Use **Select a route** in the header to open any published route scorecard. Overview links to **Replay this period** at `/replay/` for a historical vehicle map (curated GTFS-RT). Optionally place a Wellington PMTiles extract at `archive/tiles/wellington-region.pmtiles` so the map has a basemap (`/data/tiles/wellington-region.pmtiles`); without it, vehicles still render on a plain field.
 
 Local development without Docker:
 

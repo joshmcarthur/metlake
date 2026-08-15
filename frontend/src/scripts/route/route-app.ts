@@ -21,7 +21,7 @@ import {
   RoutePerformanceSession,
 } from "../../lib/performance";
 import { routeIdFromDocument } from "../../lib/route-path";
-import { queryPageHref } from "../../lib/site";
+import { queryPageHref, replayPageHref } from "../../lib/site";
 import {
   isArchiveError,
   type DateRange,
@@ -238,6 +238,16 @@ async function refreshRoute(
       state.range.to,
       estimated,
     );
+
+    const replayLink = document.querySelector<HTMLAnchorElement>("[data-replay-link]");
+    if (replayLink) {
+      replayLink.href = replayPageHref({
+        from: state.range.from,
+        to: state.range.to,
+        route: routeId,
+      });
+      replayLink.hidden = false;
+    }
 
     const manifest = session.getManifest();
     const months = manifest

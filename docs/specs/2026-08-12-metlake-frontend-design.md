@@ -12,9 +12,10 @@ The Astro app under [`frontend/src/`](../../frontend/src/) is the UI source of t
 | --- | --- |
 | `/` | Network scorecard + city-wide charts + auto commentary |
 | `/routes/[route]/` | Published metrics + delay anatomy (pick route via [header dialog](./2026-08-13-route-picker-dialog-design.md)) |
+| `/replay/` | Historical vehicle map (GTFS-RT positions + local PMTiles); linked from Overview |
 | `/query/` | DuckDB-WASM SQL + file links |
 
-See also [`2026-08-13-route-picker-dialog-design.md`](./2026-08-13-route-picker-dialog-design.md) and [`2026-08-13-route-page-design.md`](./2026-08-13-route-page-design.md).
+See also [`2026-08-13-route-picker-dialog-design.md`](./2026-08-13-route-picker-dialog-design.md), [`2026-08-13-route-page-design.md`](./2026-08-13-route-page-design.md), and [`2026-08-14-map-replay-design.md`](./2026-08-14-map-replay-design.md).
 
 ## Product framing
 
@@ -25,9 +26,10 @@ See also [`2026-08-13-route-picker-dialog-design.md`](./2026-08-13-route-picker-
 
 ## Information architecture
 
-1. **Overview** — period control; commentary; summary tiles; most/least punctual routes; punctuality calendar; cancellations sparkline; peak-gap scatter; network hour×weekday heat; shared choke points.
+1. **Overview** — period control; commentary; summary tiles; most/least punctual routes; punctuality calendar; cancellations sparkline; peak-gap scatter; network hour×weekday heat; shared choke points; link to map replay for the selected period.
 2. **Route page** — chosen via header dialog; published reliability / punctuality / cancellations / series, then delay anatomy (stop profile, injectors, hour heat, recovery vs fade; needs GTFS-RT-derived tables).
-3. **Query** — SQL against `/data/…`, CSV export, links into directory listing.
+3. **Map replay** — `/replay/?from=&to=&t=` historical vehicles from curated GTFS-RT on a local PMTiles basemap (see [map replay design](./2026-08-14-map-replay-design.md)).
+4. **Query** — SQL against `/data/…`, CSV export, links into directory listing.
 
 ## Data
 
