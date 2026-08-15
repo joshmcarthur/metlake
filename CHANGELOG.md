@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/joshmcarthur/metlake/compare/v1.1.0...v1.1.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* compile the frontend image on the builder platform ([5d0c02b](https://github.com/joshmcarthur/metlake/commit/5d0c02b50c912a89c1d46d6bb0da2a5b83579bad))
+
 ## [1.1.0](https://github.com/joshmcarthur/metlake/compare/v1.0.0...v1.1.0) (2026-08-15)
 
 
