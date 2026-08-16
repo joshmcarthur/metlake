@@ -139,4 +139,33 @@ test "${hh_ok}" -ge 1
 echo "== status =="
 "${ROOT}/scripts/status.sh" >/dev/null
 
+echo "== crontab excludes backfill =="
+if grep -q 'backfill-derived.sh' "${ROOT}/crontab"; then
+  echo "backfill-derived.sh must not be scheduled in crontab" >&2
+  exit 1
+fi
+
+echo "== backfill guard =="
+unset METLAKE_ALLOW_BACKFILL || true
+before="$(find "${ARCHIVE_ROOT}/derived" -type f -name '*.parquet' | LC_ALL=C sort)"
+set +e
+"${ROOT}/scripts/backfill-derived.sh"
+guard_status=$?
+set -e
+test "${guard_status}" -eq 1
+after="$(find "${ARCHIVE_ROOT}/derived" -type f -name '*.parquet' | LC_ALL=C sort)"
+test "${before}" = "${after}"
+
+echo "== backfill fills a missing derived month =="
+rm -f "${ARCHIVE_ROOT}/derived/late-trips/2026-08.parquet"
+METLAKE_ALLOW_BACKFILL=1 "${ROOT}/scripts/backfill-derived.sh"
+test -f "${ARCHIVE_ROOT}/derived/late-trips/2026-08.parquet"
+test -f "${ARCHIVE_ROOT}/derived/late-trips/_manifest.json"
+grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/late-trips/_manifest.json"
+
+echo "== backfill skips existing months =="
+skip_log="$(METLAKE_ALLOW_BACKFILL=1 "${ROOT}/scripts/backfill-derived.sh" 2>&1)"
+echo "${skip_log}" | grep -q 'skipping late-trips 2026-08: already exists'
+test -f "${ARCHIVE_ROOT}/derived/late-trips/2026-08.parquet"
+
 echo "smoke tests passed"

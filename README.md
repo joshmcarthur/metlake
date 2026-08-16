@@ -89,6 +89,9 @@ MONTH=2026-08 ./scripts/derive-rt-route-performance.sh
 MONTH=2026-08 ./scripts/derive-stop-delay.sh
 MONTH=2026-08 ./scripts/derive-stop-anatomy.sh
 
+METLAKE_ALLOW_BACKFILL=1 ./scripts/backfill-derived.sh
+METLAKE_ALLOW_BACKFILL=1 FORCE=1 ./scripts/backfill-derived.sh
+
 ./scripts/status.sh
 ```
 
