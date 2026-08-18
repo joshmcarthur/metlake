@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/joshmcarthur/metlake/compare/v1.1.1...v1.2.0) (2026-08-16)
+
+
+### Features
+
+* backfill derived parquet across historical months ([1b2720f](https://github.com/joshmcarthur/metlake/commit/1b2720f8f206e235ac94493292a19e872be2a086))
+
 ## [1.1.1](https://github.com/joshmcarthur/metlake/compare/v1.1.0...v1.1.1) (2026-08-15)
 
 
