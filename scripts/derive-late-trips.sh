@@ -13,19 +13,10 @@ if [[ -z "${MONTH:-}" ]]; then
   DATE="${DATE:-$(default_previous_date)}"
   MONTH="${DATE:0:7}"
 fi
-year="${MONTH%%-*}"
-mon="$(printf '%s' "${MONTH}" | cut -d- -f2)"
-
-daily_glob="${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/daily/${year}/${mon}/*.parquet"
-monthly_file="${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/monthly/${year}/${mon}.parquet"
-trip_glob=""
-# shellcheck disable=SC2086
-if compgen -G ${daily_glob} >/dev/null; then
-  trip_glob="${daily_glob}"
-elif [[ -f "${monthly_file}" ]]; then
-  trip_glob="${monthly_file}"
-else
-  log_warn "no tripupdates parquet for ${MONTH}: ${daily_glob}"
+export MONTH
+resolve_tripupdates_inputs
+if [[ -z "${trip_glob}" ]]; then
+  log_warn "no tripupdates parquet for ${MONTH}"
   exit 0
 fi
 

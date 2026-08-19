@@ -1,6 +1,7 @@
 -- Trip × day census.
--- Env: TRIPUPDATES_GLOB, ROUTES_PARQUET, TRIPS_PARQUET, CALENDAR_PARQUET,
--- CALENDAR_DATES_PARQUET, STOP_TIMES_PARQUET, MONTH (YYYY-MM), OUT_PARQUET_TMP
+-- Env: TRIPUPDATES_GLOB, TRIPUPDATES_PREV, ROUTES_PARQUET, TRIPS_PARQUET,
+-- CALENDAR_PARQUET, CALENDAR_DATES_PARQUET, STOP_TIMES_PARQUET, MONTH (YYYY-MM),
+-- OUT_PARQUET_TMP
 COPY (
   WITH
   month_start AS (
@@ -86,15 +87,65 @@ COPY (
       AND added.day >= month_start.start
       AND added.day < month_end.stop
   ),
+  tripupdates AS (
+    SELECT *
+    FROM read_parquet(
+      CASE
+        WHEN length(coalesce(getenv('TRIPUPDATES_PREV'), '')) = 0
+        THEN [getenv('TRIPUPDATES_GLOB')]
+        ELSE [getenv('TRIPUPDATES_GLOB'), getenv('TRIPUPDATES_PREV')]
+      END,
+      union_by_name = true
+    )
+  ),
   base AS (
     SELECT
       capture_hour,
       feed_timestamp,
-      to_json(entity) AS ent
-    FROM read_parquet(getenv('TRIPUPDATES_GLOB'), union_by_name = true)
+      to_json(entity) AS ent,
+      COALESCE(
+        TRY_STRPTIME(
+          json_extract_string(to_json(entity), '$.trip_update.trip.start_date'),
+          '%Y%m%d'
+        )::DATE,
+        CAST(
+          timezone(
+            'Pacific/Auckland',
+            timezone('UTC', strptime(capture_hour || ':00:00', '%Y-%m-%dT%H:%M:%S'))
+          ) AS DATE
+        )
+      ) AS day
+    FROM tripupdates
+  ),
+  hours_present AS (
+    SELECT DISTINCT capture_hour FROM tripupdates
+  ),
+  expected_hours AS (
+    SELECT
+      days.day AS nz_date,
+      strftime(
+        timezone(
+          'UTC',
+          timezone('Pacific/Auckland', CAST(days.day AS TIMESTAMP) + (h * INTERVAL 1 HOUR))
+        ),
+        '%Y-%m-%dT%H'
+      ) AS capture_hour
+    FROM days,
+    range(24) AS t(h)
+  ),
+  day_coverage AS (
+    SELECT
+      e.nz_date AS day,
+      COUNT(DISTINCT e.capture_hour) AS expected_hours,
+      COUNT(DISTINCT p.capture_hour) AS present_hours
+    FROM expected_hours AS e
+    LEFT JOIN hours_present AS p
+      ON p.capture_hour = e.capture_hour
+    GROUP BY e.nz_date
   ),
   with_stus AS (
     SELECT
+      day,
       capture_hour,
       feed_timestamp,
       ent,
@@ -107,7 +158,7 @@ COPY (
   ),
   rt_obs AS (
     SELECT
-      CAST(left(capture_hour, 10) AS DATE) AS day,
+      day,
       json_extract_string(ent, '$.trip_update.trip.trip_id') AS trip_id,
       json_extract_string(ent, '$.trip_update.trip.route_id') AS rt_route_id,
       json_extract_string(ent, '$.trip_update.trip.start_time') AS rt_start_time,
@@ -123,7 +174,7 @@ COPY (
     WHERE len(stus) > 0
     UNION ALL
     SELECT
-      CAST(left(capture_hour, 10) AS DATE) AS day,
+      day,
       json_extract_string(ent, '$.trip_update.trip.trip_id') AS trip_id,
       json_extract_string(ent, '$.trip_update.trip.route_id') AS rt_route_id,
       json_extract_string(ent, '$.trip_update.trip.start_time') AS rt_start_time,
@@ -158,13 +209,17 @@ COPY (
       COALESCE(s.route_id, r.rt_route_id) AS route_id,
       s.trip_id IS NOT NULL AS scheduled,
       r.trip_id IS NOT NULL AS observed,
-      COALESCE(r.cancelled, FALSE)
-        OR (s.trip_id IS NOT NULL AND r.trip_id IS NULL) AS cancelled,
+      COALESCE(cov.present_hours, 0) > 0 AS has_coverage,
+      COALESCE(cov.present_hours, 0) = COALESCE(cov.expected_hours, 0)
+        AND COALESCE(cov.expected_hours, 0) > 0 AS complete,
+      COALESCE(r.cancelled, FALSE) AS explicit_cancel,
       r.delay_seconds,
       COALESCE(r.rt_start_time, s.start_time) AS start_time
     FROM scheduled AS s
     FULL OUTER JOIN rt_trip AS r
       ON s.day = r.day AND s.trip_id = r.trip_id
+    LEFT JOIN day_coverage AS cov
+      ON cov.day = COALESCE(s.day, r.day)
   )
   SELECT
     c.day,
@@ -173,13 +228,17 @@ COPY (
     c.route_id,
     c.scheduled,
     c.observed,
-    c.cancelled,
+    (c.explicit_cancel
+      OR (c.scheduled AND NOT c.observed AND c.complete)) AS cancelled,
+    (c.scheduled AND NOT c.observed AND NOT c.explicit_cancel AND NOT c.complete) AS pending,
+    c.complete,
     c.delay_seconds,
     c.start_time
   FROM census AS c
   LEFT JOIN read_parquet(getenv('ROUTES_PARQUET')) AS rt
     ON CAST(rt.route_id AS VARCHAR) = c.route_id
     OR CAST(rt.route_short_name AS VARCHAR) = c.route_id
+  WHERE c.has_coverage OR c.observed
 )
 TO (getenv('OUT_PARQUET_TMP'))
 (FORMAT PARQUET, COMPRESSION ZSTD);
