@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/joshmcarthur/metlake/compare/v1.2.0...v1.2.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* key RT census on NZ service date, not UTC folders ([#15](https://github.com/joshmcarthur/metlake/issues/15)) ([488b644](https://github.com/joshmcarthur/metlake/commit/488b644019058fe8d02c47adbf505646a18473e6))
+
 ## [1.2.0](https://github.com/joshmcarthur/metlake/compare/v1.1.1...v1.2.0) (2026-08-16)
 
 
