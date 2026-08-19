@@ -1,5 +1,5 @@
 -- Trip × stop × day sampled spine.
--- Env: TRIPUPDATES_GLOB, ROUTES_PARQUET, TRIPS_PARQUET, STOP_TIMES_PARQUET,
+-- Env: TRIPUPDATES_GLOB, TRIPUPDATES_PREV, ROUTES_PARQUET, TRIPS_PARQUET, STOP_TIMES_PARQUET,
 -- STOPS_PARQUET, MONTH (YYYY-MM), OUT_PARQUET_TMP
 COPY (
   WITH
@@ -14,7 +14,14 @@ COPY (
       capture_hour,
       feed_timestamp,
       to_json(entity) AS ent
-    FROM read_parquet(getenv('TRIPUPDATES_GLOB'), union_by_name = true)
+    FROM read_parquet(
+      CASE
+        WHEN length(coalesce(getenv('TRIPUPDATES_PREV'), '')) = 0
+        THEN [getenv('TRIPUPDATES_GLOB')]
+        ELSE [getenv('TRIPUPDATES_GLOB'), getenv('TRIPUPDATES_PREV')]
+      END,
+      union_by_name = true
+    )
   ),
   with_stus AS (
     SELECT
@@ -30,7 +37,18 @@ COPY (
   ),
   rt_stops AS (
     SELECT
-      CAST(left(capture_hour, 10) AS DATE) AS day,
+      COALESCE(
+        TRY_STRPTIME(
+          json_extract_string(ent, '$.trip_update.trip.start_date'),
+          '%Y%m%d'
+        )::DATE,
+        CAST(
+          timezone(
+            'Pacific/Auckland',
+            timezone('UTC', strptime(capture_hour || ':00:00', '%Y-%m-%dT%H:%M:%S'))
+          ) AS DATE
+        )
+      ) AS day,
       feed_timestamp,
       json_extract_string(ent, '$.trip_update.trip.trip_id') AS trip_id,
       json_extract_string(ent, '$.trip_update.trip.route_id') AS rt_route_id,

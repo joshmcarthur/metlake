@@ -136,6 +136,44 @@ default_previous_month() {
   fi
 }
 
+# UTC date immediately before YYYY-MM-01.
+utc_day_before_month() {
+  local month_start="${1}-01"
+  if date -u -j -f '%Y-%m-%d' "${month_start}" -v-1d +'%Y-%m-%d' >/dev/null 2>&1; then
+    date -u -j -f '%Y-%m-%d' "${month_start}" -v-1d +'%Y-%m-%d'
+  else
+    date -u -d "${month_start} - 1 day" +'%Y-%m-%d'
+  fi
+}
+
+# Sets trip_glob and TRIPUPDATES_PREV from MONTH + ARCHIVE_ROOT.
+# trip_glob is a DuckDB glob or monthly file. TRIPUPDATES_PREV is empty or the
+# previous UTC day's daily parquet (NZ morning of the 1st lives there).
+resolve_tripupdates_inputs() {
+  local year mon daily_glob monthly_file prev py pm pd
+  require_env MONTH ARCHIVE_ROOT
+  year="${MONTH%%-*}"
+  mon="$(printf '%s' "${MONTH}" | cut -d- -f2)"
+  daily_glob="${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/daily/${year}/${mon}/*.parquet"
+  monthly_file="${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/monthly/${year}/${mon}.parquet"
+  trip_glob=""
+  TRIPUPDATES_PREV=""
+  # shellcheck disable=SC2086
+  if compgen -G ${daily_glob} >/dev/null; then
+    trip_glob="${daily_glob}"
+  elif [[ -f "${monthly_file}" ]]; then
+    trip_glob="${monthly_file}"
+  fi
+  prev="$(utc_day_before_month "${MONTH}")"
+  py="${prev%%-*}"
+  pm="$(printf '%s' "${prev}" | cut -d- -f2)"
+  pd="$(printf '%s' "${prev}" | cut -d- -f3)"
+  if [[ -f "${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/daily/${py}/${pm}/${pd}.parquet" ]]; then
+    TRIPUPDATES_PREV="${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/daily/${py}/${pm}/${pd}.parquet"
+  fi
+  export trip_glob TRIPUPDATES_PREV
+}
+
 append_capture_record() {
   local source="$1"
   local rel_path="$2"
