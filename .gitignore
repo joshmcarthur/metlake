@@ -8,6 +8,7 @@ credentials*
 
 # Local archive / data
 archive/
+archive-*/
 /data/
 *.duckdb
 *.duckdb.wal

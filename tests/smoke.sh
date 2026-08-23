@@ -34,6 +34,8 @@ cp "${ROOT}/tests/fixtures/gtfs-rt/tripupdates-object-stu.json" \
   "${ARCHIVE_ROOT}/raw/gtfs-rt/tripupdates/${ymd}/${hh}-05.json"
 HOUR=2026-08-01T16 FEED=tripupdates "${ROOT}/scripts/project-gtfs-rt-hour.sh"
 test -f "${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/hourly/2026/08/01/16.parquet"
+# Hourly projection must roll the UTC day so same-day derives see the new hour.
+test -f "${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/daily/2026/08/01.parquet"
 
 DATE=2026-08-01 FEED=tripupdates "${ROOT}/scripts/project-gtfs-rt-day.sh"
 test -f "${ARCHIVE_ROOT}/curated/gtfs-rt/tripupdates/daily/2026/08/01.parquet"

@@ -46,3 +46,7 @@ for feed in "${feeds[@]}"; do
   atomic_mv "${tmp}" "${dest}"
   log_info "wrote ${dest}"
 done
+
+# Roll this UTC day so trip-performance can see the hour without waiting
+# for the overnight daily job.
+DATE="${date_part}" "${SCRIPT_DIR}/project-gtfs-rt-day.sh"

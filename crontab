@@ -8,8 +8,13 @@
 5 1 * * * /opt/metlake/scripts/fetch-gtfs.sh
 15 1 * * * /opt/metlake/scripts/fetch-performance.sh
 
-# Hourly curated rollup of the previous hour (script default)
+# Hourly curated rollup of the previous hour (also rolls that UTC day)
 10 * * * * /opt/metlake/scripts/project-gtfs-rt-hour.sh
+
+# Refresh RT scorecard derives after the hourly rollup so Day/Yesterday
+# can show observed punctuality without waiting for the overnight jobs.
+15 * * * * /opt/metlake/scripts/derive-trip-performance.sh
+16 * * * * /opt/metlake/scripts/derive-rt-route-performance.sh
 
 # Daily curated rollups
 30 2 * * * /opt/metlake/scripts/project-gtfs-rt-day.sh
