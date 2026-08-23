@@ -33,6 +33,11 @@ const metricKeys =
         >
           {tile.delta}
         </p>
+        {
+          interactive && metricKeys[index] === "cancellations" ? (
+            <p class="tile-pending" data-pending="cancellations" hidden></p>
+          ) : null
+        }
       </article>
     ))
   }

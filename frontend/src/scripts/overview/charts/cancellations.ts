@@ -1,4 +1,4 @@
-import { formatNzDayMonth, formatPercent } from "../../../lib/format";
+import { formatNzDayMonth, formatPercent } from "../../../lib/format.ts";
 import type { NetworkDailyPoint } from "../../../lib/types";
 
 interface PlottedDay {

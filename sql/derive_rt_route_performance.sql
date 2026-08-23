@@ -9,15 +9,16 @@ COPY (
       BOOL_AND(t.complete) AS complete,
       COUNT(*) FILTER (WHERE t.scheduled) AS scheduled_trips,
       COUNT(*) FILTER (WHERE t.cancelled) AS cancellations,
+      COUNT(*) FILTER (WHERE t.pending) AS pending_trips,
       CASE
-        WHEN COUNT(*) FILTER (WHERE t.scheduled) = 0 THEN NULL
-        ELSE COUNT(*) FILTER (WHERE t.cancelled)::DOUBLE
-             / COUNT(*) FILTER (WHERE t.scheduled)
+        WHEN COUNT(*) FILTER (WHERE t.observed) = 0 THEN NULL
+        ELSE COUNT(*) FILTER (WHERE t.observed AND t.cancelled)::DOUBLE
+             / COUNT(*) FILTER (WHERE t.observed)
       END AS cancellations_rate,
       CASE
-        WHEN COUNT(*) FILTER (WHERE t.scheduled) = 0 THEN NULL
-        ELSE 1 - COUNT(*) FILTER (WHERE t.cancelled)::DOUBLE
-                  / COUNT(*) FILTER (WHERE t.scheduled)
+        WHEN COUNT(*) FILTER (WHERE t.observed) = 0 THEN NULL
+        ELSE 1 - COUNT(*) FILTER (WHERE t.observed AND t.cancelled)::DOUBLE
+                  / COUNT(*) FILTER (WHERE t.observed)
       END AS reliability,
       CASE
         WHEN COUNT(*) FILTER (WHERE t.observed AND NOT t.cancelled AND t.delay_seconds IS NOT NULL) = 0
@@ -72,6 +73,7 @@ COPY (
     route_type,
     scheduled_trips,
     cancellations,
+    pending_trips,
     cancellations_rate,
     reliability,
     punctuality,

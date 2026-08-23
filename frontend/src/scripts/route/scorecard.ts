@@ -4,9 +4,10 @@ import {
   formatPercent,
   formatRateDelta,
   type MetricDelta,
-} from "../../lib/format";
+} from "../../lib/format.ts";
 import type { PeriodSummary } from "../../lib/types";
-import { priorLabel, type PeriodKey } from "../overview/period";
+import { priorLabel, type PeriodKey } from "../overview/period.ts";
+import { applyPendingLine } from "../overview/scorecard.ts";
 
 function setDelta(el: HTMLElement, delta: MetricDelta): void {
   el.textContent = delta.text;
@@ -73,10 +74,19 @@ export function renderRouteScorecard(
     if (cancellationsDelta) setDelta(cancellationsDelta, placeholder);
     if (varianceDelta) setDelta(varianceDelta, placeholder);
   }
+
+  applyPendingLine(
+    document.querySelector<HTMLElement>("[data-pending='cancellations']"),
+    summary.pending_trips,
+  );
 }
 
 export function showRouteScorecardLoading(): void {
   document.querySelectorAll<HTMLElement>("[data-metric]").forEach((el) => {
     el.textContent = "…";
   });
+  applyPendingLine(
+    document.querySelector<HTMLElement>("[data-pending='cancellations']"),
+    null,
+  );
 }

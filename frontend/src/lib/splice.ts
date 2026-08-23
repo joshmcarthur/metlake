@@ -27,7 +27,7 @@ export function splicedRoutePerformanceSql(
   if (hasPublished && hasRt) {
     return `
 CREATE OR REPLACE VIEW route_performance AS
-SELECT *, 'published' AS source
+SELECT *, CAST(NULL AS BIGINT) AS pending_trips, 'published' AS source
 FROM route_performance_published
 UNION ALL BY NAME
 SELECT *
@@ -43,7 +43,7 @@ SELECT * FROM route_performance_rt;
   }
   return `
 CREATE OR REPLACE VIEW route_performance AS
-SELECT *, 'published' AS source
+SELECT *, CAST(NULL AS BIGINT) AS pending_trips, 'published' AS source
 FROM route_performance_published;
 `;
 }

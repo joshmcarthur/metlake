@@ -124,6 +124,14 @@ test "${rt_complete}" -eq 0
 # Incomplete days still publish punctuality from observed trips.
 rt_punct="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') WHERE punctuality IS NOT NULL;" | tail -n 1)"
 test "${rt_punct}" -ge 1
+# Known-outcomes cancellation rate is published before the NZ day is complete.
+rt_cancel_rate="$(duckdb -csv -c "SELECT cancellations_rate FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') LIMIT 1;" | tail -n 1)"
+test "${rt_cancel_rate}" != ""
+test "${rt_cancel_rate}" != "NULL"
+rt_pending="$(duckdb -csv -c "SELECT SUM(pending_trips) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet');" | tail -n 1)"
+test "${rt_pending}" -ge 1
+rt_reliability="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') WHERE reliability IS NOT NULL;" | tail -n 1)"
+test "${rt_reliability}" -ge 1
 rt_pat_cols="$(duckdb -csv -c "SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet')) WHERE lower(column_name) IN ('patronage', 'seated_capacity', 'license_capacity', 'licence_capacity');" | tail -n +2)"
 if [[ -n "${rt_pat_cols}" ]]; then
   while IFS= read -r col; do

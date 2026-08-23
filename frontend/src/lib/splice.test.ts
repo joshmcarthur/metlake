@@ -28,6 +28,13 @@ test("spliced SQL is RT-only when published is absent", () => {
   assert.doesNotMatch(sql, /UNION/);
 });
 
+test("published splice always exposes pending_trips so queries do not fail", () => {
+  const both = splicedRoutePerformanceSql(true, true);
+  assert.match(both, /pending_trips/);
+  const publishedOnly = splicedRoutePerformanceSql(true, false);
+  assert.match(publishedOnly, /pending_trips/);
+});
+
 test("period label notes live-feed estimates", () => {
   assert.match(
     formatPeriodLabel("2026-08-01", "2026-08-13", true),

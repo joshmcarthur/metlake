@@ -2,6 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildSampleSql, getDefaultSampleSql } from "./sample-sql.ts";
 
+test("sample SQL selects pending_trips alongside cancellation rate", () => {
+  const sql = buildSampleSql("2026-08", "2026-08-01", "2026-08-13");
+  assert.match(sql, /cancellations_rate/);
+  assert.match(sql, /pending_trips/);
+});
+
 test("omits a route filter when none is selected", () => {
   const sql = buildSampleSql("2026-08", "2026-08-01", "2026-08-13");
   assert.match(sql, /WHERE day BETWEEN DATE '2026-08-01' AND DATE '2026-08-13'\nORDER BY day;/);

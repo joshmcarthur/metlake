@@ -1,12 +1,13 @@
 import {
   formatCount,
   formatCountDelta,
+  formatPendingTrips,
   formatPercent,
   formatRateDelta,
   type MetricDelta,
-} from "../../lib/format";
+} from "../../lib/format.ts";
 import type { PeriodSummary, RouteLeaderboardRow } from "../../lib/types";
-import { priorLabel, type PeriodKey } from "./period";
+import { priorLabel, type PeriodKey } from "./period.ts";
 
 function rankLabel(index: number): string {
   return String(index + 1).padStart(2, "0");
@@ -51,6 +52,18 @@ function setDelta(el: HTMLElement, delta: MetricDelta): void {
   el.textContent = delta.text;
   el.classList.remove("up", "down", "flat");
   el.classList.add(delta.trend);
+}
+
+export function applyPendingLine(el: HTMLElement | null, pending: number | null): void {
+  if (!el) return;
+  const text = formatPendingTrips(pending);
+  if (!text) {
+    el.textContent = "";
+    el.hidden = true;
+    return;
+  }
+  el.textContent = text;
+  el.hidden = false;
 }
 
 export function renderScorecard(
@@ -114,10 +127,19 @@ export function renderScorecard(
   const attentionList = document.querySelector<HTMLElement>("[data-board='attention']");
   if (bestList) renderRankList(bestList, best);
   if (attentionList) renderRankList(attentionList, attention);
+
+  applyPendingLine(
+    document.querySelector<HTMLElement>("[data-pending='cancellations']"),
+    summary.pending_trips,
+  );
 }
 
 export function showScorecardLoading(): void {
   document.querySelectorAll<HTMLElement>("[data-metric]").forEach((el) => {
     el.textContent = "…";
   });
+  applyPendingLine(
+    document.querySelector<HTMLElement>("[data-pending='cancellations']"),
+    null,
+  );
 }

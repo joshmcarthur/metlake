@@ -24,6 +24,7 @@ export interface PeriodSummary {
   punctuality: number | null;
   cancellations: number | null;
   cancellations_rate: number | null;
+  pending_trips: number | null;
   mean_departure_time_variance: number | null;
 }
 

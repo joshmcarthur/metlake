@@ -49,6 +49,13 @@ export function formatCount(value: number | null): string {
   return Math.round(value).toLocaleString("en-NZ");
 }
 
+/** Unseen scheduled trips on an incomplete NZ day; null when there are none. */
+export function formatPendingTrips(value: number | null): string | null {
+  if (value === null || !Number.isFinite(value) || value <= 0) return null;
+  const count = Math.round(value).toLocaleString("en-NZ");
+  return `${count} not yet seen`;
+}
+
 /** Mean departure variance is stored in minutes. */
 export function formatMinutes(value: number | null, digits = 1): string {
   if (value === null || !Number.isFinite(value)) return "—";

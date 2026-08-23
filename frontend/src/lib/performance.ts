@@ -97,6 +97,7 @@ export async function getRoutePeriodSummary(
       AVG(punctuality) AS punctuality,
       SUM(cancellations) AS cancellations,
       AVG(cancellations_rate) AS cancellations_rate,
+      SUM(pending_trips) AS pending_trips,
       AVG(mean_departure_time_variance) AS mean_departure_time_variance
     FROM ${ROUTE_PERFORMANCE_VIEW}
     WHERE (route = '${safeRoute}' OR CAST(route_short_name AS VARCHAR) = '${safeRoute}')
@@ -113,6 +114,7 @@ export async function getRoutePeriodSummary(
     punctuality: toNullableNumber(row?.punctuality),
     cancellations: toNullableNumber(row?.cancellations),
     cancellations_rate: toNullableNumber(row?.cancellations_rate),
+    pending_trips: toNullableNumber(row?.pending_trips),
     mean_departure_time_variance: toNullableNumber(row?.mean_departure_time_variance),
   };
 }
@@ -141,6 +143,7 @@ export async function getPeriodSummary(
       AVG(punctuality) AS punctuality,
       SUM(cancellations) AS cancellations,
       AVG(cancellations_rate) AS cancellations_rate,
+      SUM(pending_trips) AS pending_trips,
       AVG(mean_departure_time_variance) AS mean_departure_time_variance
     FROM ${ROUTE_PERFORMANCE_VIEW}
     WHERE day >= DATE '${range.from}'
@@ -156,6 +159,7 @@ export async function getPeriodSummary(
     punctuality: toNullableNumber(row?.punctuality),
     cancellations: toNullableNumber(row?.cancellations),
     cancellations_rate: toNullableNumber(row?.cancellations_rate),
+    pending_trips: toNullableNumber(row?.pending_trips),
     mean_departure_time_variance: toNullableNumber(row?.mean_departure_time_variance),
   };
 }

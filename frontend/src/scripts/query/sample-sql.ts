@@ -17,7 +17,8 @@ export function buildSampleSql(
   route_long_name,
   punctuality,
   reliability,
-  cancellations_rate
+  cancellations_rate,
+  pending_trips
 FROM route_performance
 WHERE day BETWEEN DATE '${from}' AND DATE '${to}'${routeFilter}
 ORDER BY day;`;
