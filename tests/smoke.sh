@@ -121,8 +121,9 @@ rt_cancels="$(duckdb -csv -c "SELECT SUM(cancellations) FROM read_parquet('${ARC
 test "${rt_cancels}" -ge 1
 rt_complete="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') WHERE complete;" | tail -n 1)"
 test "${rt_complete}" -eq 0
-rt_punct="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') WHERE punctuality IS NOT NULL OR cancellations_rate IS NOT NULL;" | tail -n 1)"
-test "${rt_punct}" -eq 0
+# Incomplete days still publish punctuality from observed trips.
+rt_punct="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') WHERE punctuality IS NOT NULL;" | tail -n 1)"
+test "${rt_punct}" -ge 1
 rt_pat_cols="$(duckdb -csv -c "SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet')) WHERE lower(column_name) IN ('patronage', 'seated_capacity', 'license_capacity', 'licence_capacity');" | tail -n +2)"
 if [[ -n "${rt_pat_cols}" ]]; then
   while IFS= read -r col; do

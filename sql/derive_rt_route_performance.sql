@@ -72,11 +72,11 @@ COPY (
     route_type,
     scheduled_trips,
     cancellations,
-    CASE WHEN complete THEN cancellations_rate END AS cancellations_rate,
-    CASE WHEN complete THEN reliability END AS reliability,
-    CASE WHEN complete THEN punctuality END AS punctuality,
-    CASE WHEN complete THEN peak_punctuality END AS peak_punctuality,
-    CASE WHEN complete THEN mean_departure_time_variance END AS mean_departure_time_variance,
+    cancellations_rate,
+    reliability,
+    punctuality,
+    peak_punctuality,
+    mean_departure_time_variance,
     'gtfs_rt' AS source,
     complete
   FROM rolled
