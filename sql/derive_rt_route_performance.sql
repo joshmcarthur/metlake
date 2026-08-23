@@ -62,7 +62,6 @@ COPY (
     FROM read_parquet(getenv('TRIP_PERFORMANCE_PARQUET')) AS t
     LEFT JOIN read_parquet(getenv('ROUTES_PARQUET')) AS r
       ON CAST(r.route_id AS VARCHAR) = t.route_id
-      OR CAST(r.route_short_name AS VARCHAR) = t.route
     GROUP BY t.day, t.route
   )
   SELECT

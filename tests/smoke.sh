@@ -87,7 +87,8 @@ late_day="$(duckdb -csv -c "SELECT DISTINCT CAST(day AS VARCHAR) FROM read_parqu
 test "${late_day}" = "2026-08-02"
 
 echo "== derive trip-performance =="
-MONTH=2026-08 "${ROOT}/scripts/derive-trip-performance.sh"
+# Freeze the NZ service date so pending is evaluated as if the fixture day is still open.
+NZ_TODAY=2026-08-02 MONTH=2026-08 "${ROOT}/scripts/derive-trip-performance.sh"
 test -f "${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet"
 test -f "${ARCHIVE_ROOT}/derived/trip-performance/_manifest.json"
 grep -q '"months":\["2026-08"\]' "${ARCHIVE_ROOT}/derived/trip-performance/_manifest.json"
@@ -102,9 +103,18 @@ tp_t1_census="$(duckdb -csv -c "SELECT cancelled, delay_seconds FROM read_parque
 test "${tp_t1_census}" = "true,180"
 tp_t1_pending="$(duckdb -csv -c "SELECT pending, complete FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't1' AND observed;" | tail -n 1)"
 test "${tp_t1_pending}" = "false,false"
-# Incomplete NZ day: unobserved scheduled trip is pending, not cancelled.
+# Short-name collisions must not duplicate a trip onto another route.
+tp_t1_rows="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't1';" | tail -n 1)"
+test "${tp_t1_rows}" -eq 1
+# Unobserved in an uncaptured NZ hour on the still-open day stays pending.
 tp_missed="$(duckdb -csv -c "SELECT pending, cancelled FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't_missed';" | tail -n 1)"
 test "${tp_missed}" = "true,false"
+# Unobserved in a captured NZ hour is cancelled — we had a chance to see it.
+tp_watched="$(duckdb -csv -c "SELECT pending, cancelled FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't_watched';" | tail -n 1)"
+test "${tp_watched}" = "false,true"
+# Ferry and cable car never appear in trip updates; omit them from the census.
+tp_modes="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id IN ('t_ferry', 't_cable');" | tail -n 1)"
+test "${tp_modes}" -eq 0
 # Days with no hourly coverage (rest of the month / 1 Aug UTC folder date) are omitted.
 tp_other_days="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE day <> DATE '2026-08-02';" | tail -n 1)"
 test "${tp_other_days}" -eq 0
@@ -130,6 +140,12 @@ test "${rt_cancel_rate}" != ""
 test "${rt_cancel_rate}" != "NULL"
 rt_pending="$(duckdb -csv -c "SELECT SUM(pending_trips) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet');" | tail -n 1)"
 test "${rt_pending}" -ge 1
+# Once the NZ day is over, an uncaptured hour is unknown — not still pending.
+NZ_TODAY=2026-08-03 MONTH=2026-08 "${ROOT}/scripts/derive-trip-performance.sh"
+tp_missed_closed="$(duckdb -csv -c "SELECT pending, cancelled FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't_missed';" | tail -n 1)"
+test "${tp_missed_closed}" = "false,false"
+tp_watched_closed="$(duckdb -csv -c "SELECT pending, cancelled FROM read_parquet('${ARCHIVE_ROOT}/derived/trip-performance/2026-08.parquet') WHERE trip_id = 't_watched';" | tail -n 1)"
+test "${tp_watched_closed}" = "false,true"
 rt_reliability="$(duckdb -csv -c "SELECT count(*) FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet') WHERE reliability IS NOT NULL;" | tail -n 1)"
 test "${rt_reliability}" -ge 1
 rt_pat_cols="$(duckdb -csv -c "SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet('${ARCHIVE_ROOT}/derived/rt-route-performance/2026-08.parquet')) WHERE lower(column_name) IN ('patronage', 'seated_capacity', 'license_capacity', 'licence_capacity');" | tail -n +2)"

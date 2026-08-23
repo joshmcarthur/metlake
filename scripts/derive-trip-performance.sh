@@ -63,7 +63,7 @@ if [[ -n "${CALENDAR_DATES_PARQUET:-}" ]]; then
 elif [[ -f "${gtfs_dir}/calendar_dates.parquet" ]]; then
   calendar_dates="${gtfs_dir}/calendar_dates.parquet"
 else
-  calendar_dates_tmp="$(mktemp "${TMPDIR:-/tmp}/metlake-calendar-dates.XXXXXX.parquet")"
+  calendar_dates_tmp="$(mktemp "${TMPDIR:-/tmp}/metlake-calendar-dates.XXXXXX")"
   duckdb -c "COPY (SELECT CAST(NULL AS VARCHAR) AS service_id, CAST(NULL AS INTEGER) AS date, CAST(NULL AS INTEGER) AS exception_type WHERE FALSE) TO '${calendar_dates_tmp}' (FORMAT PARQUET);"
   calendar_dates="${calendar_dates_tmp}"
 fi
@@ -74,7 +74,11 @@ dest="${dest_dir}/${MONTH}.parquet"
 tmp="${dest}.tmp"
 rm -f "${tmp}"
 
+if [[ -z "${NZ_TODAY:-}" ]]; then
+  NZ_TODAY="$(TZ=Pacific/Auckland date +%F)"
+fi
 export MONTH
+export NZ_TODAY
 export TRIPUPDATES_GLOB="${trip_glob}"
 export ROUTES_PARQUET="${routes}"
 export TRIPS_PARQUET="${trips}"
@@ -82,7 +86,7 @@ export CALENDAR_PARQUET="${calendar}"
 export CALENDAR_DATES_PARQUET="${calendar_dates}"
 export STOP_TIMES_PARQUET="${stop_times}"
 export OUT_PARQUET_TMP="${tmp}"
-log_info "deriving trip-performance for ${MONTH} using routes=${routes}"
+log_info "deriving trip-performance for ${MONTH} as of NZ ${NZ_TODAY} using routes=${routes}"
 duckdb -c ".read ${SQL_DIR}/derive_trip_performance.sql"
 atomic_mv "${tmp}" "${dest}"
 log_info "wrote ${dest}"

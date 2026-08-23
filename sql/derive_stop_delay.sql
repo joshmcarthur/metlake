@@ -119,7 +119,6 @@ COPY (
     ON CAST(st.stop_id AS VARCHAR) = ls.stop_id
   LEFT JOIN read_parquet(getenv('ROUTES_PARQUET')) AS rt
     ON CAST(rt.route_id AS VARCHAR) = COALESCE(CAST(tr.route_id AS VARCHAR), ls.rt_route_id)
-    OR CAST(rt.route_short_name AS VARCHAR) = COALESCE(CAST(tr.route_id AS VARCHAR), ls.rt_route_id)
 )
 TO (getenv('OUT_PARQUET_TMP'))
 (FORMAT PARQUET, COMPRESSION ZSTD);
