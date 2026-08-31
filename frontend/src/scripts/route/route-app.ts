@@ -18,6 +18,7 @@ import {
   getRouteLongName,
   getRoutePeriodSummary,
   loadRoutePerformance,
+  routeHasData,
   RoutePerformanceSession,
 } from "../../lib/performance";
 import { routeIdFromDocument } from "../../lib/route-path";
@@ -37,6 +38,10 @@ import {
   type PeriodElements,
   type PeriodState,
 } from "../overview/period";
+import {
+  resolvePeriodFallback,
+  updatePeriodFallbackNote,
+} from "../overview/period-fallback";
 import { buildRouteBrief } from "../commentary/brief";
 import { mountCommentaryPanel } from "../commentary/commentary-app";
 import { bindCsvExport, updateParquetLink } from "./export";
@@ -54,6 +59,7 @@ let loadToken = 0;
 let anatomyToken = 0;
 let metricState: RouteMetricState = { metrics: new Set(["punctuality", "reliability"]) };
 let currentPeriod: PeriodState | null = null;
+let currentDisplayRange: DateRange | null = null;
 let routeId = "";
 let cachedSeries: RouteDailyPoint[] | null = null;
 let cachedPriorSeries: RouteDailyPoint[] | null = null;
@@ -225,7 +231,7 @@ async function refreshRoute(
 
   try {
     const priorRange = state.compare ? getPriorRange(state.range) : null;
-    const { conn, estimated } = await loadRoutePerformance(
+    let { conn, estimated } = await loadRoutePerformance(
       state.range,
       session,
       fetch,
@@ -233,17 +239,34 @@ async function refreshRoute(
     );
     if (token !== loadToken) return;
 
+    const resolved = await resolvePeriodFallback(
+      conn,
+      state.range,
+      state.key,
+      state.compare,
+      (connection, range) => routeHasData(connection, routeId, range),
+      async (range) => {
+        const loaded = await loadRoutePerformance(range, session, fetch);
+        estimated = loaded.estimated;
+        return loaded.conn;
+      },
+    );
+    conn = resolved.conn;
+    const displayRange = resolved.displayRange;
+    currentDisplayRange = displayRange;
+    updatePeriodFallbackNote(periodEls.fallbackNote, resolved.fallbackNote);
+
     periodEls.rangeMeta.textContent = formatPeriodLabel(
-      state.range.from,
-      state.range.to,
+      displayRange.from,
+      displayRange.to,
       estimated,
     );
 
     const replayLink = document.querySelector<HTMLAnchorElement>("[data-replay-link]");
     if (replayLink) {
       replayLink.href = replayPageHref({
-        from: state.range.from,
-        to: state.range.to,
+        from: displayRange.from,
+        to: displayRange.to,
         route: routeId,
       });
       replayLink.hidden = false;
@@ -251,15 +274,15 @@ async function refreshRoute(
 
     const manifest = session.getManifest();
     const months = manifest
-      ? monthsIntersectingPeriod(manifest.months, state.range.from, state.range.to)
+      ? monthsIntersectingPeriod(manifest.months, displayRange.from, displayRange.to)
       : [];
     const latestMonth = months[months.length - 1];
     if (latestMonth) updateParquetLink(latestMonth);
 
     const [summary, prior, series, priorSeries, longName] = await Promise.all([
-      getRoutePeriodSummary(conn, routeId, state.range),
+      getRoutePeriodSummary(conn, routeId, displayRange),
       priorRange ? getRoutePeriodSummary(conn, routeId, priorRange) : Promise.resolve(null),
-      getDailySeries(conn, routeId, state.range),
+      getDailySeries(conn, routeId, displayRange),
       priorRange ? getDailySeries(conn, routeId, priorRange) : Promise.resolve(null),
       getRouteLongName(conn, routeId),
     ]);
@@ -293,11 +316,11 @@ async function refreshRoute(
     updateRouteBrief();
     rerenderSeriesForMetric();
     cachedAnatomyConn = conn;
-    cachedAnatomyRange = state.range;
-    await renderDelayAnatomy(conn, state.range, routeId, currentDirection);
+    cachedAnatomyRange = displayRange;
+    await renderDelayAnatomy(conn, displayRange, routeId, currentDirection);
 
     const delayRoot = document.getElementById("route-delay-range");
-    if (delayRoot) void renderDelayRangeForPeriod(delayRoot, conn, state.range, routeId);
+    if (delayRoot) void renderDelayRangeForPeriod(delayRoot, conn, displayRange, routeId);
   } catch (error) {
     if (token !== loadToken) return;
     const message =
@@ -331,17 +354,17 @@ export async function initRouteApp(): Promise<void> {
     bindCsvExport(
       csvButton,
       async () => {
-        if (!session || !currentPeriod) return [];
-        const priorRange = currentPeriod.compare
+        if (!session || !currentDisplayRange) return [];
+        const priorRange = currentPeriod?.compare
           ? getPriorRange(currentPeriod.range)
           : null;
         const { conn } = await loadRoutePerformance(
-          currentPeriod.range,
+          currentDisplayRange,
           session,
           fetch,
           priorRange,
         );
-        return getRouteDailyExport(conn, routeId, currentPeriod.range);
+        return getRouteDailyExport(conn, routeId, currentDisplayRange);
       },
       `route-${routeId}`,
     );

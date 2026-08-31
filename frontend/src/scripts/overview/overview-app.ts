@@ -14,6 +14,7 @@ import {
   getNetworkDailySeries,
   getPeriodSummary,
   loadRoutePerformance,
+  rangeHasData,
   RoutePerformanceSession,
 } from "../../lib/performance";
 import { isArchiveError } from "../../lib/types";
@@ -35,6 +36,10 @@ import {
 import { buildNetworkBrief } from "../commentary/brief";
 import { mountCommentaryPanel } from "../commentary/commentary-app";
 import { renderScorecard, showScorecardLoading } from "./scorecard";
+import {
+  resolvePeriodFallback,
+  updatePeriodFallbackNote,
+} from "./period-fallback";
 
 let session: RoutePerformanceSession | null = null;
 let loadToken = 0;
@@ -68,7 +73,7 @@ async function refreshPeriod(
 
   try {
     const priorRange = state.compare ? getPriorRange(state.range) : null;
-    const { conn, estimated } = await loadRoutePerformance(
+    let { conn, estimated } = await loadRoutePerformance(
       state.range,
       session,
       fetch,
@@ -76,27 +81,43 @@ async function refreshPeriod(
     );
     if (token !== loadToken) return;
 
+    const resolved = await resolvePeriodFallback(
+      conn,
+      state.range,
+      state.key,
+      state.compare,
+      rangeHasData,
+      async (range) => {
+        const loaded = await loadRoutePerformance(range, session, fetch);
+        estimated = loaded.estimated;
+        return loaded.conn;
+      },
+    );
+    conn = resolved.conn;
+    const displayRange = resolved.displayRange;
+    updatePeriodFallbackNote(periodEls.fallbackNote, resolved.fallbackNote);
+
     periodEls.rangeMeta.textContent = formatPeriodLabel(
-      state.range.from,
-      state.range.to,
+      displayRange.from,
+      displayRange.to,
       estimated,
     );
 
     const replayLink = document.querySelector<HTMLAnchorElement>("[data-replay-link]");
     if (replayLink) {
       replayLink.href = replayPageHref({
-        from: state.range.from,
-        to: state.range.to,
+        from: displayRange.from,
+        to: displayRange.to,
       });
       replayLink.hidden = false;
     }
 
     const [summary, prior, best, attention, daily] = await Promise.all([
-      getPeriodSummary(conn, state.range),
+      getPeriodSummary(conn, displayRange),
       priorRange ? getPeriodSummary(conn, priorRange) : Promise.resolve(null),
-      getLeaderboard(conn, state.range, "best"),
-      getLeaderboard(conn, state.range, "attention"),
-      getNetworkDailySeries(conn, state.range),
+      getLeaderboard(conn, displayRange, "best"),
+      getLeaderboard(conn, displayRange, "attention"),
+      getNetworkDailySeries(conn, displayRange),
     ]);
 
     if (token !== loadToken) return;
@@ -106,7 +127,7 @@ async function refreshPeriod(
 
     const hourRoot = document.getElementById("net-hour-heat");
     const chokeRoot = document.getElementById("net-corridors");
-    const flags = await ensureAnatomyViews(conn, state.range);
+    const flags = await ensureAnatomyViews(conn, displayRange);
     if (token !== loadToken) return;
     if (hourRoot) {
       if (!flags.hourHeat) {
@@ -114,7 +135,7 @@ async function refreshPeriod(
         hourRoot.innerHTML = `<p class="rt-stub-note">No trip-update delay data for this period.</p>`;
       } else {
         const table = await conn.query(
-          networkHourHeatSql(state.range.from, state.range.to),
+          networkHourHeatSql(displayRange.from, displayRange.to),
         );
         if (token !== loadToken) return;
         renderNetworkHourHeat(
@@ -134,7 +155,7 @@ async function refreshPeriod(
         chokeRoot.innerHTML = `<p class="rt-stub-note">No trip-update delay data for this period.</p>`;
       } else {
         const table = await conn.query(
-          sharedChokePointsSql(state.range.from, state.range.to),
+          sharedChokePointsSql(displayRange.from, displayRange.to),
         );
         if (token !== loadToken) return;
         renderChokePoints(
@@ -156,9 +177,9 @@ async function refreshPeriod(
     const calRoot = document.getElementById("net-calendar");
     const sparkRoot = document.getElementById("net-cancel-spark");
     const delayRoot = document.getElementById("net-delay-range");
-    if (calRoot) renderPunctualityCalendar(calRoot, daily, state.range);
+    if (calRoot) renderPunctualityCalendar(calRoot, daily, displayRange);
     if (sparkRoot) renderCancellationsChart(sparkRoot, daily);
-    if (delayRoot) void renderDelayRangeForPeriod(delayRoot, conn, state.range);
+    if (delayRoot) void renderDelayRangeForPeriod(delayRoot, conn, displayRange);
   } catch (error) {
     if (token !== loadToken) return;
     const message =
