@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/joshmcarthur/metlake/compare/v1.2.1...v1.3.0) (2026-09-07)
+
+
+### Features
+
+* show known-outcomes cancellations and pending trips ([f7a70f8](https://github.com/joshmcarthur/metlake/commit/f7a70f84fa449497d614f7bad1a064ae7fedee03))
+
+
+### Bug Fixes
+
+* count pending only while a trip could still appear ([44bbf6b](https://github.com/joshmcarthur/metlake/commit/44bbf6b9eb65aa20e4786dfa916e00f0b4f2b326))
+* publish RT punctuality on incomplete NZ days ([72b5d8e](https://github.com/joshmcarthur/metlake/commit/72b5d8e951d2a0787d5020f6cb5912859c32b280))
+* roll daily GTFS-RT after each hour so Day can use it ([88cf76e](https://github.com/joshmcarthur/metlake/commit/88cf76eee8d2b0d4b398608bd45fd29e68d96462))
+
 ## [1.2.1](https://github.com/joshmcarthur/metlake/compare/v1.2.0...v1.2.1) (2026-08-19)
 
 
