@@ -292,6 +292,35 @@ export async function getNetworkDailySeries(
   }));
 }
 
+export async function rangeHasData(
+  conn: DuckDbConnection,
+  range: DateRange,
+): Promise<boolean> {
+  const result = await conn.query(`
+    SELECT COUNT(*) > 0 AS has_data
+    FROM ${ROUTE_PERFORMANCE_VIEW}
+    WHERE day >= DATE '${range.from}'
+      AND day <= DATE '${range.to}';
+  `);
+  return sqlTruthy(firstRow(result)?.has_data);
+}
+
+export async function routeHasData(
+  conn: DuckDbConnection,
+  route: string,
+  range: DateRange,
+): Promise<boolean> {
+  const safeRoute = route.replace(/'/g, "''");
+  const result = await conn.query(`
+    SELECT COUNT(*) > 0 AS has_data
+    FROM ${ROUTE_PERFORMANCE_VIEW}
+    WHERE (route = '${safeRoute}' OR CAST(route_short_name AS VARCHAR) = '${safeRoute}')
+      AND day >= DATE '${range.from}'
+      AND day <= DATE '${range.to}';
+  `);
+  return sqlTruthy(firstRow(result)?.has_data);
+}
+
 export async function getDataBounds(
   conn: DuckDbConnection,
 ): Promise<DateRange | null> {

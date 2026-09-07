@@ -146,6 +146,7 @@ export interface PeriodElements {
   toInput: HTMLInputElement;
   compareBtn: HTMLButtonElement | null;
   compareNote: HTMLElement | null;
+  fallbackNote: HTMLElement | null;
   periodButtons: NodeListOf<HTMLButtonElement>;
 }
 
@@ -165,6 +166,7 @@ export function getPeriodElements(root: ParentNode): PeriodElements | null {
     toInput,
     compareBtn: root.querySelector<HTMLButtonElement>("[data-compare]"),
     compareNote: root.querySelector<HTMLElement>("[data-compare-note]"),
+    fallbackNote: root.querySelector<HTMLElement>("[data-period-fallback-note]"),
     periodButtons: root.querySelectorAll<HTMLButtonElement>("[data-period]"),
   };
 }
